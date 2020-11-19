@@ -1,4 +1,4 @@
-# Web Dumper
+# Web Page Dumper
 Dumps web site contents.
 
 ## Usage
