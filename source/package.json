@@ -1,11 +1,20 @@
 {
-  "name": "source",
-  "version": "0.0.0",
+  "name": "web-page-dumper",
+  "description": "Dumps web page source code including JavaScript generated contents.",
+  "version": "1.0.0",
+  "url": "https://github.com/michaeluno/web-page-dumper",
+  "author": "Michael Uno <michael2@michaeluno.jp> (https://michaeluno.jp/)",
+  "license": "MIT",
   "private": true,
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:michaeluno/web-page-dumper.git"
+  },
   "scripts": {
     "start": "node ./bin/www"
   },
   "dependencies": {
+    "bulma": "^0.9.1",
     "cookie-parser": "~1.4.4",
     "debug": "~2.6.9",
     "express": "~4.16.1",
