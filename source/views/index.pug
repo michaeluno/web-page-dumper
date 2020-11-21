@@ -1,5 +1,8 @@
-extends layout
+extends layout/layout
 
 block content
-  h1= title
-  p Welcome to #{title}
+  include ./content-top.pug
+  section.section
+    div.container
+      include ./content.pug
+

@@ -1,6 +1,7 @@
-extends layout
+extends index
 
 block content
-  h1= message
-  h2= error.status
-  pre #{error.stack}
+  include ./content-top.pug
+  section.section
+    div.container
+      include ./content-error.pug
