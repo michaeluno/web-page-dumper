@@ -1,0 +1,10 @@
+footer.footer
+  div.content.has-text-centered
+    p
+      a( href=project.url target="_blank")
+        strong #{project.name} #{package.version}
+      span.ml-1
+        | licensed under
+        |
+        a( href= project.licenseURL target="_blank" ) #{package.license}
+        | .

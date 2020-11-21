@@ -1,0 +1,26 @@
+div.columns.is-centered.is-vcentered.min-height-400
+  div.column.is-half
+    div.field.has-addons
+      div.control.is-expanded
+        input.input( type="text" name="url" placeholder="Type URL here." )
+      div.control
+        input.button.is-info( type="button" name="url" value="Send" )
+    div.field
+      div.control
+        label.radio
+          input(type="radio" name="output" checked)
+          span.ml-1 HTML
+        label.radio
+          input(type="radio" name="output")
+          span.ml-1 PDF
+        label.radio
+          input(type="radio" name="output")
+          span.ml-1 JPEG
+        label.radio
+          input(type="radio" name="output")
+          span.ml-1 PNG
+    div.field
+      div.control
+        label.checkbox
+          input(type="checkbox")
+          span.ml-1 Reload
