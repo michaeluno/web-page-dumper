@@ -1,8 +1,16 @@
+// Express generated dependencies
 var createError = require('http-errors');
 var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
+
+// Additional dependencies
+
+/// To parse POST
+var bodyParser = require('body-parser');
+var multer = require('multer');
+var upload = multer();
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
@@ -30,6 +38,20 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+
+// Dependencies to handle forms
+// @see
+/// for parsing application/json
+app.use(bodyParser.json());
+
+/// for parsing application/xwww-
+app.use(bodyParser.urlencoded({ extended: true }));
+///form-urlencoded
+
+/// for parsing multipart/form-data
+app.use(upload.array());
+app.use(express.static('public'));
+
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
