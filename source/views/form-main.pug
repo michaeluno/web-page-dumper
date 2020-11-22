@@ -1,0 +1,31 @@
+form( method="get" )
+  div.field.has-addons
+    div.control.is-expanded
+      input.input( type="text" name="url" placeholder="Type URL here." required )
+    div.control
+      input.button.is-info( type="submit" name="send" value="Send" )
+  div.field
+    div.control
+      label.radio
+        input( type="radio" name="output" value="html" checked )
+        span.ml-1 HTML
+      label.radio
+        input( type="radio" name="output" value="json" )
+        span.ml-1 JSON
+      label.radio
+        input( type="radio" name="output" value="pdf" )
+        span.ml-1 PDF
+      label.radio
+        input( type="radio" name="output" value="jpg" )
+        span.ml-1 JPEG
+      label.radio
+        input( type="radio" name="output" value="png" )
+        span.ml-1 PNG
+      label.radio
+        input( type="radio" name="output" value="gif" )
+        span.ml-1 GIF
+  div.field
+    div.control
+      label.checkbox
+        input( type="checkbox" name="reload" )
+        span.ml-1 Reload
