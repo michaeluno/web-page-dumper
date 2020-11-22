@@ -1,6 +1,6 @@
 {
   "name": "web-page-dumper",
-  "description": "Dumps web page source code including JavaScript generated contents.",
+  "description": "Dumps web page outputs including JavaScript generated contents.",
   "version": "1.0.0",
   "url": "https://github.com/michaeluno/web-page-dumper",
   "author": "Michael Uno <michael2@michaeluno.jp> (https://michaeluno.jp/)",
@@ -21,7 +21,9 @@
     "express": "~4.16.1",
     "http-errors": "~1.6.3",
     "morgan": "~1.9.1",
-    "pug": "2.0.0-beta11"
+    "pug": "2.0.0-beta11",
+    "puppeteer": "^5.5.0",
+    "temp-dir": "^2.0.0"
   },
   "devDependencies": {
     "multer": "^1.4.2"
