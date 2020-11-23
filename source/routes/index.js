@@ -1,6 +1,7 @@
 const puppeteer = require('puppeteer');
 var express = require('express');
 var router  = express.Router();
+var urlModule = require( 'url' );
 // var util = require( 'util' );
 
 
@@ -88,6 +89,19 @@ function _handleRequest( req, res ) {
 
         let _html = await page.content();
         res.send( _html );
+        return;
+      }
+
+      if ( [ 'mhtml' ].includes( _type ) ) {
+        // Save the HTML document @see https://github.com/puppeteer/puppeteer/issues/3575#issuecomment-447258318
+        const session = await page.target().createCDPSession();
+        await session.send( 'Page.enable' );
+        const {data} = await session.send( 'Page.captureSnapshot' );
+        var _hostName = urlModule.parse( url ).hostname;
+        res.setHeader( 'Content-Type', 'message/rfc822' );
+        res.setHeader('Content-Disposition','attachment;filename="' + _hostName + '.mhtml"' );
+        res.setHeader( 'Content-Length', data.length );
+        res.send( data );
         return;
       }
 

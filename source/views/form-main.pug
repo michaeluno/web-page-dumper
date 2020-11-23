@@ -7,11 +7,14 @@ form( method="get" )
   div.field
     div.control
       label.radio
-        input( type="radio" name="output" value="html" checked )
+        input( type="radio" name="output" value="json" checked )
+        span.ml-1 JSON
+      label.radio
+        input( type="radio" name="output" value="html" )
         span.ml-1 HTML
       label.radio
-        input( type="radio" name="output" value="json" )
-        span.ml-1 JSON
+        input( type="radio" name="output" value="html" )
+        span.ml-1 MHTML
       label.radio
         input( type="radio" name="output" value="pdf" )
         span.ml-1 PDF
