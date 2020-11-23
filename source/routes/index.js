@@ -1,6 +1,8 @@
 const puppeteer = require('puppeteer');
 var express = require('express');
 var router  = express.Router();
+// var util = require( 'util' );
+
 
 router.get('/', function(req, res) {
   _handleRequest( req, res );
@@ -8,6 +10,10 @@ router.get('/', function(req, res) {
 router.post('/', function(req, res) {
   _handleRequest( req, res );
 });
+
+// @todo cache
+// @see system temp dir https://www.npmjs.com/package/temp-dir
+// console.log(tempDirectory);
 
 module.exports = router;
 
@@ -48,27 +54,50 @@ function _handleRequest( req, res ) {
         });
         const page = await browser.newPage();
         await page.setCacheEnabled( true );
-        await page.goto( url, {
-            waitUntil: [ "networkidle0", "domcontentloaded" ],
+        const responseHTTP = await page.goto( url, {
+           // waitUntil: [ "networkidle0", "networkidle2", "domcontentloaded" ],
             timeout: 30000,
         });
         if ( req.query.reload ) {
-          await page.reload({ waitUntil: [ "networkidle0", "domcontentloaded" ] } );
+          await page.reload({ waitUntil: [ "networkidle0", , "networkidle2", "domcontentloaded" ] } );
         }
-        await _processRequest( page, req, res );
+
+        await _processRequest( url, page, req, res, responseHTTP );
         await browser.close();
 
     })();
   }
-    async function _processRequest (page, req, res) {
+    async function _processRequest( url, page, req, res, responseHTTP ) {
 
       let _type = 'undefined' !== typeof req.query.output && req.query.output
         ? req.query.output.toLowerCase()
         : '';
 
-      if ( ! _type || ['htm', 'html'].includes(_type)) {
+      if ( ! _type || [ 'htm', 'html' ].includes( _type ) ) {
+        // Transfer response headers
+        // const _headers = responseHTTP.headers();
+        // console.log( 'Headers Sanitized', _sanitizeHeaders( _headers ) );
+
+  //       Object.keys( _headers ).forEach(function(key, index) {
+  // console.log( key, this[key] );
+  //           res.setHeader( key, this[key] );
+  //         }, _sanitizeHeaders( _headers )
+  //       );
+
+        // res.set( _headers );
+
         let _html = await page.content();
         res.send( _html );
+        return;
+      }
+
+      if ( [ 'json' ].includes( _type ) ) {
+        res.setHeader( 'Content-Type', 'application/json' );
+        res.json( {
+          'status': responseHTTP.status(),
+          'headers': responseHTTP.headers(),
+          'body': await responseHTTP.text(),
+        } );
         return;
       }
 
@@ -77,7 +106,7 @@ function _handleRequest( req, res ) {
       let bodyHeight = await page.evaluate(() => document.body.scrollHeight);
       await page.setViewport({ width: bodyWidth, height: bodyHeight });
 
-      if ( [ 'jpg', 'jpeg', 'png' ].includes( _type ) ) {
+      if ( [ 'jpg', 'jpeg', 'png', 'gif' ].includes( _type ) ) {
         _type = 'jpg' === _type ? 'jpeg' : _type;
         // await page.setViewport({ width: 1024, height: 800 });
         var _img = await page.screenshot( {
@@ -88,7 +117,7 @@ function _handleRequest( req, res ) {
         return;
       }
 
-      if (['pdf'].includes(_type)) {
+      if ( ['pdf'].includes( _type ) ) {
         //await page.pdf({ path: 'hn.pdf', format: 'A4' });
         var _pdf = await page.pdf({
           format: 'A4'
