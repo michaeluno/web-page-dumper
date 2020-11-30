@@ -56,6 +56,10 @@ function _handleRequest( req, res ) {
         });
         const page = await browser.newPage();
 
+        if ( req.query.user_agent ) {
+          await page.setUserAgent( req.query.user_agent );
+        }
+
         await _handleCaches( page, req );
         await page.setCacheEnabled( true );
         const responseHTTP = await page.goto( url, {
