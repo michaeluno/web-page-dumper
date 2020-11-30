@@ -197,19 +197,30 @@ function _handleRequest( req, res ) {
 
       if ( [ 'jpg', 'jpeg', 'png', 'gif' ].includes( _type ) ) {
         _type = 'jpg' === _type ? 'jpeg' : _type;
-        let _screenShotOptions = parseInt( req.query.ssw ) || parseInt( req.query.ssh ) || parseInt( req.query.ssx ) || parseInt( req.query.ssy )
-          ? {
-            clip: {
-              x: parseInt( req.query.ssx ) || 0,
-              y: parseInt( req.query.ssy ) || 0,
-              width: parseInt( req.query.ssw ) || ( _bodyWidth - ( parseInt( req.query.ssx ) || 0 ) ) ,
-              height: parseInt( req.query.ssh ) || ( _bodyHeight - ( parseInt( req.query.ssy ) || 0 ) ),
-            }
+        let _getScreenShotOptions = function( req, bodyWidth, bodyHeight ) {
+          if ( ! ( parseInt( req.query.ssw ) || parseInt( req.query.ssh ) || parseInt( req.query.ssx ) || parseInt( req.query.ssy ) ) ) {
+            return {
+              'fullPage': true
+            };
           }
-          : {
-            'fullPage': true
+          let _ssx = parseInt( req.query.ssx ) || 0;
+          let _ssy = parseInt( req.query.ssy ) || 0;
+          let _maxW = bodyWidth - _ssx;
+          let _maxH = bodyWidth - _ssy;
+          let _ssw = parseInt( req.query.ssw ) || _maxW;
+          _ssw = Math.min( _ssw, _maxW );
+          let _ssh = parseInt( req.query.ssh ) || _maxH;
+          _ssh = Math.min( _ssh, _maxH );
+          return {
+            clip: {
+              x: _ssx,
+              y: _ssy,
+              width: _ssw,
+              height: _ssh,
+            }
           };
-        let _img = await page.screenshot( _screenShotOptions );
+        };
+        let _img = await page.screenshot( _getScreenShotOptions( req, _bodyWidth, _bodyHeight ) );
         res.writeHead( 200, { 'Content-Type': 'image/' + _type } );
         res.end( _img, 'binary' );
         return;
