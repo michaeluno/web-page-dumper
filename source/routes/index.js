@@ -191,16 +191,25 @@ function _handleRequest( req, res ) {
       }
 
       // Get scroll width and height of the rendered page and set viewport
-      let bodyWidth = await page.evaluate(() => document.body.scrollWidth);
-      let bodyHeight = await page.evaluate(() => document.body.scrollHeight);
-      await page.setViewport({ width: bodyWidth, height: bodyHeight });
+      let _bodyWidth  = parseInt( req.query.vpw ) || await page.evaluate( () => document.body.scrollWidth );
+      let _bodyHeight = parseInt( req.query.vph ) || await page.evaluate( () => document.body.scrollHeight );
+      await page.setViewport({ width: _bodyWidth, height: _bodyHeight });
 
       if ( [ 'jpg', 'jpeg', 'png', 'gif' ].includes( _type ) ) {
         _type = 'jpg' === _type ? 'jpeg' : _type;
-        // await page.setViewport({ width: 1024, height: 800 });
-        var _img = await page.screenshot( {
-          'fullPage': true
-        } );
+        let _screenShotOptions = parseInt( req.query.ssw ) || parseInt( req.query.ssh ) || parseInt( req.query.ssx ) || parseInt( req.query.ssy )
+          ? {
+            clip: {
+              x: parseInt( req.query.ssx ) || 0,
+              y: parseInt( req.query.ssy ) || 0,
+              width: parseInt( req.query.ssw ) || ( _bodyWidth - ( parseInt( req.query.ssx ) || 0 ) ) ,
+              height: parseInt( req.query.ssh ) || ( _bodyHeight - ( parseInt( req.query.ssy ) || 0 ) ),
+            }
+          }
+          : {
+            'fullPage': true
+          };
+        let _img = await page.screenshot( _screenShotOptions );
         res.writeHead( 200, { 'Content-Type': 'image/' + _type } );
         res.end( _img, 'binary' );
         return;

@@ -5,7 +5,9 @@ Dumps web site contents.
 
 ### Parameters
 
-#### (string) url 
+Only the `url` parameter is required. The rest is optional.
+
+#### (required, string) url 
 A URL-encoded URL to fetch. 
 
 #### (string) output
@@ -24,11 +26,23 @@ The output type. Accepts the following values:
 - `png`, `jpg`, `jpeg`, `gif` - outputs a screenthot image of the site
 - `pdf`
 
-#### (integer) width
+#### (integer) vpw
+Sets a browser viewport width. Use this to simulate a browser. 
+
+#### (integer) vph
+Sets a browser viewport height. Use this to simulate a browser.
+ 
+#### (integer) ssw
 Sets a width of the screenshot when the `type` argument is either of `png`, `jpg`, `jpeg`, or `gif`.  
  
-#### (integer) height 
+#### (integer) ssh 
 Sets a height of the screenshot when the `type` argument is either of `png`, `jpg`, `jpeg`, or `gif`.
+
+#### (integer) ssx
+Sets an X coordinate offset for a screenshot.
+
+#### (integer) ssy 
+Sets an Y coordinate offset for a screenshot. 
 
 #### (integer) reload  
 Specifies whether to reload the internal browser. This is useful for cookie dependant web sites.  
