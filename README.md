@@ -52,5 +52,8 @@ Accepts `1` or `0`.
 #### (integer) cache_duration
 Sets how long the cache should be retained.
 
+#### (string) user_agent
+Specifies a user agent.
+
 ## License
 MIT

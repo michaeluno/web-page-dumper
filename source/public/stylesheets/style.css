@@ -15,3 +15,13 @@ body > div {
 .hidden {
   display: none;
 }
+
+.is-weight-normal {
+  font-weight: normal;
+}
+
+/* Override Bulma rules */
+.field .label:not(:last-child) {
+    margin-bottom: .3em;
+    margin-top: 0.1em;
+}

@@ -29,6 +29,17 @@ var projectData = {
     'licenseURL': 'http://opensource.org/licenses/mit-license.php',
   },
   'package': require('./package.json'),
+  'labels': {
+    'userAgent'     : 'User Agent',
+    'urlPlaceholder': 'Type URL here',
+    'advanced'      : 'Advanced',
+    'proxy'         : 'Proxy',
+    'viewport'      : 'Viewport',
+    'width'         : 'Width',
+    'height'        : 'Height',
+    'clip'          : 'Clip',
+    'position'      : 'Position',
+  }
 };
 app.set( 'config', projectData );
 
