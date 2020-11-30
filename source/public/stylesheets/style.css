@@ -11,3 +11,7 @@ body > div {
 .min-height-400 {
   min-height: 400px;
 }
+
+.hidden {
+  display: none;
+}
