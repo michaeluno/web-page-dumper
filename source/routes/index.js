@@ -9,6 +9,11 @@ const fse = require( 'fs-extra' );
 const username = require( 'username' );
 
 const cacheLifespan = 86400;
+/**
+ * Stores flags indicating whether a URL request is handled or not.
+ * @type {{}}
+ */
+let requested = {};
 
 router.get('/', function(req, res) {
   _handleRequest( req, res );
@@ -23,7 +28,7 @@ router.post('/', function(req, res) {
 module.exports = router;
 
 function _handleRequest( req, res ) {
-
+  requested = {};
   let url = 'undefined' !== typeof req.query.url && req.query.url
     ? decodeURI( req.query.url ).replace(/\/$/, "") // trim trailing slashes
     : '';
@@ -43,6 +48,11 @@ function _handleRequest( req, res ) {
    * @see https://github.com/puppeteer/puppeteer/issues/1273#issuecomment-667646971
    */
   function _render( url, req, res ) {
+
+    let _type = 'undefined' !== typeof req.query.output && req.query.output
+      ? req.query.output.toLowerCase()
+      : '';
+
     (async () => {
 
         const browser = await puppeteer.launch({
@@ -61,6 +71,7 @@ function _handleRequest( req, res ) {
           await page.setUserAgent( req.query.user_agent );
         }
 
+        await _disableImages( page, req, _type, url );
         await _handleCaches( page, req );
         await page.setCacheEnabled( true );
         const responseHTTP = await page.goto( url, {
@@ -71,11 +82,47 @@ function _handleRequest( req, res ) {
           await page.reload({ waitUntil: [ "networkidle0", "networkidle2", "domcontentloaded" ] } );
         }
 
-        await _processRequest( url, page, req, res, responseHTTP );
+        await _processRequest( url, page, req, res, responseHTTP, _type );
         await browser.close();
 
     })();
   }
+    async function _disableImages( page, req, typeOutput, urlRequest ) {
+
+      let _imageExtensions = [ 'pdf', 'jpg', 'jpeg', 'png', 'gif' ];
+      if ( _imageExtensions.includes( typeOutput ) ) {
+        return;
+      }
+      let _urlParsedMain = urlModule.parse( urlRequest );
+      page.on( 'request', async request => {
+
+        let _urlParsedThis = urlModule.parse( request.url() );
+        let _hostThis      = _urlParsedThis.hostname;
+
+        // Resources from 3rd party domains
+        if ( _urlParsedMain.hostname !== _hostThis ) {
+            requested[ request.url() ] = true;
+            request.abort();
+            return
+        }
+        // Images
+        try {
+          switch (await request.resourceType()) {
+            case "image":
+            case "stylesheet":
+            case "font":
+              requested[ request.url() ] = true;
+              await request.abort();
+              break;
+            default:
+              break;
+          }
+        } catch (e) {
+          console.log(e);
+        }
+
+      } );
+    }
     async function _handleCaches( page, req ) {
 
       let _cacheDuration = 'undefined' === typeof req.query.cache_duration
@@ -89,6 +136,11 @@ function _handleRequest( req, res ) {
        */
       await page.setRequestInterception( true );
       page.on( 'request', async request => {
+
+        // Already handled in other callbacks.
+        if ( requested[ await request.url() ] ) {
+          return;
+        }
 
         let _hash = _getCacheHash( request.url(), request.resourceType(), request.method(), req.query );
         let _cachePath = req.app.get( 'tempDirPathCache' ) + path.sep + _hash + '.dat';
@@ -115,7 +167,7 @@ function _handleRequest( req, res ) {
       /**
        * Caching responses.
        */
-      page.on('response', async response => {
+      page.on( 'response', async response => {
 
           // Handle redirects
           let _status = response.status()
@@ -144,11 +196,7 @@ function _handleRequest( req, res ) {
       });
 
     }
-    async function _processRequest( url, page, req, res, responseHTTP ) {
-
-      let _type = 'undefined' !== typeof req.query.output && req.query.output
-        ? req.query.output.toLowerCase()
-        : '';
+    async function _processRequest( url, page, req, res, responseHTTP, _type ) {
 
       if ( ! _type || [ 'json' ].includes( _type ) ) {
         res.setHeader( 'Content-Type', 'application/json' );
