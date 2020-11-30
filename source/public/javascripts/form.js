@@ -12,6 +12,7 @@ $(function() {
     } else {
       $( '.clip' ).hide();
     }
-  } );
+  } )
+  $( '.output input:checked' ).trigger( 'change' );
 
 });
