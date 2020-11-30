@@ -19,13 +19,16 @@
     "cookie-parser": "~1.4.4",
     "debug": "~2.6.9",
     "express": "~4.16.1",
+    "fs-extra": "^9.0.1",
     "http-errors": "~1.6.3",
     "morgan": "~1.9.1",
+    "object-hash": "^2.0.3",
     "pug": "2.0.0-beta11",
     "puppeteer": "^5.5.0",
     "temp-dir": "^2.0.0"
   },
   "devDependencies": {
-    "multer": "^1.4.2"
+    "multer": "^1.4.2",
+    "username": "^5.1.0"
   }
 }

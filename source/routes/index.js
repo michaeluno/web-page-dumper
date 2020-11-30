@@ -2,8 +2,13 @@ const puppeteer = require('puppeteer');
 var express = require('express');
 var router  = express.Router();
 var urlModule = require( 'url' );
-// var util = require( 'util' );
+const fs = require("fs");
+var path = require('path');
+var hash = require( 'object-hash' ); // @see https://www.npmjs.com/package/object-hash
+const fse = require( 'fs-extra' );
+const username = require( 'username' );
 
+const cacheLifespan = 86400;
 
 router.get('/', function(req, res) {
   _handleRequest( req, res );
@@ -12,55 +17,53 @@ router.post('/', function(req, res) {
   _handleRequest( req, res );
 });
 
-// @todo cache
 // @see system temp dir https://www.npmjs.com/package/temp-dir
-// console.log(tempDirectory);
+// console.log( new Date().toLocaleTimeString(),  tempDirectory );
 
 module.exports = router;
 
 function _handleRequest( req, res ) {
 
   var url = 'undefined' !== typeof req.query.url && req.query.url
-    ? decodeURI( req.query.url )
+    ? decodeURI( req.query.url ).replace(/\/$/, "") // trim trailing slashes
     : '';
   if ( ! url ) {
     res.render('index', req.app.get( 'config' ));
     return;
   }
-
-  // Display the fetched contents
-  _requestWithPuppeteer( url, req, res );
+  _render( url, req, res );
 
 }
   /**
-   *
+   * Display the fetched contents
    * @param url
    * @param req
    * @param res
    * @private
    * @see https://github.com/puppeteer/puppeteer/issues/1273#issuecomment-667646971
    */
-  function _requestWithPuppeteer( url, req, res ) {
+  function _render( url, req, res ) {
     (async () => {
 
         const browser = await puppeteer.launch({
           headless: true,
-
-          userDataDir: '/tmp/user-data-dir',
+          userDataDir: req.app.get( 'tempDirPath' ) + '/user-data/' + await username(),
           args: [
             '--no-sandbox',
             '--start-maximized', // Start in maximized state // @see https://github.com/puppeteer/puppeteer/issues/1273#issuecomment-667646971
-            // '--disk-cache-dir=./Temp/browser-cache-disk',
+            '--disk-cache-dir=' + req.app.get( 'tempDirPath' ) + '/user-data/disk-cache',
           ]
         });
         const page = await browser.newPage();
+
+        await _handleCaches( page, req );
         await page.setCacheEnabled( true );
         const responseHTTP = await page.goto( url, {
-           // waitUntil: [ "networkidle0", "networkidle2", "domcontentloaded" ],
-            timeout: 30000,
+          waitUntil: [ "networkidle0", "networkidle2", "domcontentloaded" ],
+          timeout: 30000,
         });
-        if ( req.query.reload ) {
-          await page.reload({ waitUntil: [ "networkidle0", , "networkidle2", "domcontentloaded" ] } );
+        if ( parseInt( req.query.reload ) ) {
+          await page.reload({ waitUntil: [ "networkidle0", "networkidle2", "domcontentloaded" ] } );
         }
 
         await _processRequest( url, page, req, res, responseHTTP );
@@ -68,6 +71,74 @@ function _handleRequest( req, res ) {
 
     })();
   }
+    async function _handleCaches( page, req ) {
+
+      let _cacheDuration = 'undefined' === typeof req.query.cache_duration
+        ? cacheLifespan
+        : parseInt( req.query.cache_duration );
+
+      /**
+       * Sending cached responses.
+       * @see https://stackoverflow.com/a/58639496
+       * @see https://github.com/puppeteer/puppeteer/issues/3118#issuecomment-643531996
+       */
+      await page.setRequestInterception( true );
+      page.on( 'request', async request => {
+
+        let _hash = _getCacheHash( request.url(), request.resourceType(), request.method(), req.query );
+        let _cachePath = req.app.get( 'tempDirPathCache' ) + path.sep + _hash + '.dat';
+        let _cachePathContentType = req.app.get( 'tempDirPathCache' ) + path.sep + _hash + '.type.txt';
+
+        if ( fs.existsSync( _cachePath ) && _isCacheExpired( _cachePath, _cacheDuration ) ) {
+          let _contentType = fs.existsSync( _cachePathContentType ) ? await fse.readFile( _cachePathContentType, 'utf8' ) : undefined;
+          request.respond({
+              status: 200,
+              contentType: _contentType,
+              body: await fse.readFile( _cachePath ),
+          });
+          return;
+        }
+
+        try {
+            await request.continue();
+        } catch (err) {
+            console.log( new Date().toLocaleTimeString(), err );
+        }
+
+      });
+
+      /**
+       * Caching responses.
+       */
+      page.on('response', async response => {
+
+          // Handle redirects
+          let _status = response.status()
+          if ( ( _status >= 300 ) && ( _status <= 399 ) ) {
+            return;
+          }
+
+          // Save caches
+          let _hash        = _getCacheHash( response.url(), response.request().resourceType(), response.method, req.query );
+          let _cachePath   = req.app.get( 'tempDirPathCache' ) + path.sep + _hash + '.dat';
+          if ( ! _isCacheExpired( _cachePath, _cacheDuration ) ) {
+            return;
+          }
+
+          let _cachePathContentType = req.app.get( 'tempDirPathCache' ) + path.sep + _hash + '.type.txt';
+          let _buffer      = await response.buffer();
+          if ( ! _buffer.length ) {
+            return;
+          }
+          await fse.outputFile( _cachePath, _buffer );
+          let _contentType = response.contentType ? response.contentType : response.headers()[ 'content-type' ]; // same as headers[ 'Content-Type' ];
+          if ( _contentType ) {
+            await fse.outputFile( _cachePathContentType, _contentType );
+          }
+
+      });
+
+    }
     async function _processRequest( url, page, req, res, responseHTTP ) {
 
       let _type = 'undefined' !== typeof req.query.output && req.query.output
@@ -115,6 +186,7 @@ function _handleRequest( req, res ) {
         return;
       }
 
+
       // Get scroll width and height of the rendered page and set viewport
       let bodyWidth = await page.evaluate(() => document.body.scrollWidth);
       let bodyHeight = await page.evaluate(() => document.body.scrollHeight);
@@ -141,3 +213,48 @@ function _handleRequest( req, res ) {
         return;
       }
     }
+
+  /**
+   *
+   * @param url
+   * @param resourceType Either of the following:
+   * - document
+   * - stylesheet
+   * - image
+   * - media
+   * - font
+   * - script
+   * - texttrack
+   * - xhr
+   * - fetch
+   * - eventsource
+   * - websocket
+   * - manifest
+   * - other
+   * @see   https://github.com/puppeteer/puppeteer/blob/main/docs/api.md#httprequestresourcetype
+   * @param method
+   * @param query
+   * @returns {*}
+   * @private
+   */
+  function _getCacheHash( url, resourceType, method, query ) {
+    let _hashObject  = {
+      url: url
+    };
+    if ( [ 'document' ].includes( resourceType ) ) {
+      _hashObject[ 'method' ] = method;
+      _hashObject[ 'query' ]  = query;
+    }
+    return hash( _hashObject );
+  }
+
+  function _isCacheExpired( path, cacheLifetime ) {
+    if ( ! fs.existsSync( path ) ) {
+      return true;
+    }
+    let _stats   = fs.statSync( path );
+    let _mtime   = _stats.mtime;
+    let _seconds = (new Date().getTime() - _stats.mtime) / 1000;
+    console.log( 'modified time: ', _mtime, `modified ${_seconds} ago`, 'expired?: ', _seconds >= cacheLifetime );
+    return _seconds >= cacheLifetime;
+  }

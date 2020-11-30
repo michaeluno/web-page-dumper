@@ -7,6 +7,9 @@ var logger = require('morgan');
 
 // Additional dependencies
 
+const tempDirectory = require('temp-dir');
+var fs = require('fs');
+
 /// To parse POST
 var bodyParser = require('body-parser');
 var multer = require('multer');
@@ -28,6 +31,19 @@ var projectData = {
   'package': require('./package.json'),
 };
 app.set( 'config', projectData );
+
+/// Temporary directories
+var tempDirPath = tempDirectory + path.sep + 'web-page-dumper';
+app.set( 'tempDirPath', tempDirPath );
+if ( ! fs.existsSync( tempDirPath ) ){
+    fs.mkdirSync( tempDirPath, { recursive: true } );
+}
+var tempDirPathCache = tempDirPath + path.sep + 'caches';
+app.set( 'tempDirPathCache', tempDirPathCache );
+if ( ! fs.existsSync( tempDirPathCache ) ){
+    fs.mkdirSync( tempDirPathCache, { recursive: true } );
+}
+
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
