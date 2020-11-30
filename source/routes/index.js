@@ -54,7 +54,8 @@ function _handleRequest( req, res ) {
             '--disk-cache-dir=' + req.app.get( 'tempDirPath' ) + '/user-data/disk-cache',
           ]
         });
-        const page = await browser.newPage();
+        const context = await browser.createIncognitoBrowserContext();
+        const page = await context.newPage();
 
         if ( req.query.user_agent ) {
           await page.setUserAgent( req.query.user_agent );
