@@ -28,6 +28,7 @@
     "temp-dir": "^2.0.0"
   },
   "devDependencies": {
+    "@creativebulma/bulma-divider": "^1.1.0",
     "multer": "^1.4.2",
     "username": "^5.1.0"
   }
