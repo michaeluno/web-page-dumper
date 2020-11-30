@@ -145,7 +145,21 @@ function _handleRequest( req, res ) {
         ? req.query.output.toLowerCase()
         : '';
 
-      if ( ! _type || [ 'htm', 'html' ].includes( _type ) ) {
+      if ( ! _type || [ 'json' ].includes( _type ) ) {
+        res.setHeader( 'Content-Type', 'application/json' );
+        res.json( {
+          'url': responseHTTP.url(),
+          'query': req.query,
+          'resourceType': responseHTTP.request().resourceType(),
+          'contentType': responseHTTP.contentType ? responseHTTP.contentType : responseHTTP.headers()[ 'content-type' ], // same as headers[ 'Content-Type' ];
+          'status': responseHTTP.status(),
+          'headers': responseHTTP.headers(),
+          'body': await responseHTTP.text(),
+        } );
+        return;
+      }
+
+      if ( [ 'htm', 'html' ].includes( _type ) ) {
         // Transfer response headers
         // const _headers = responseHTTP.headers();
         // console.log( 'Headers Sanitized', _sanitizeHeaders( _headers ) );
@@ -175,17 +189,6 @@ function _handleRequest( req, res ) {
         res.send( data );
         return;
       }
-
-      if ( [ 'json' ].includes( _type ) ) {
-        res.setHeader( 'Content-Type', 'application/json' );
-        res.json( {
-          'status': responseHTTP.status(),
-          'headers': responseHTTP.headers(),
-          'body': await responseHTTP.text(),
-        } );
-        return;
-      }
-
 
       // Get scroll width and height of the rendered page and set viewport
       let bodyWidth = await page.evaluate(() => document.body.scrollWidth);
