@@ -91,13 +91,14 @@ function _handleRequest( req, res ) {
         }
 
         await _processRequest( url, page, req, res, responseHTTP, _type );
+        await page.goto( 'about:blank' );
 
         // Clear cookies @see https://github.com/puppeteer/puppeteer/issues/5253#issuecomment-688861236
         const client = await page.target().createCDPSession();
         await client.send('Network.clearBrowserCookies' );
 
         browserWSEndpoint = browser.wsEndpoint();
-        // await browser.close();
+        // await browser.close(); // reuse the browser instance
 
     })();
   }
