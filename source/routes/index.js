@@ -9,6 +9,8 @@ const fse = require( 'fs-extra' );
 const username = require( 'username' );
 
 const cacheLifespan = 86400;
+
+let browserWSEndpoint;
 /**
  * Stores flags indicating whether a URL request is handled or not.
  * @type {{}}
@@ -55,16 +57,22 @@ function _handleRequest( req, res ) {
 
     (async () => {
 
-        const browser = await puppeteer.launch({
-          headless: true,
-          userDataDir: req.app.get( 'tempDirPath' ) + '/user-data/' + await username(),
-          args: [
-            '--no-sandbox',
-            '--start-maximized', // Start in maximized state // @see https://github.com/puppeteer/puppeteer/issues/1273#issuecomment-667646971
-            '--disk-cache-dir=' + req.app.get( 'tempDirPath' ) + '/user-data/disk-cache',
-          ]
-        });
-        const context = await browser.createIncognitoBrowserContext();
+        let browser = undefined;
+        if ( browserWSEndpoint ) {
+          browser = await puppeteer.connect({browserWSEndpoint: browserWSEndpoint } );
+        }
+        if ( 'undefined' === typeof browser ) {
+          browser = await puppeteer.launch({
+            headless: true,
+            userDataDir: req.app.get( 'tempDirPath' ) + '/user-data/' + await username(),
+            args: [
+              '--no-sandbox',
+              '--start-maximized', // Start in maximized state // @see https://github.com/puppeteer/puppeteer/issues/1273#issuecomment-667646971
+              '--disk-cache-dir=' + req.app.get( 'tempDirPath' ) + '/user-data/disk-cache',
+            ]
+          });
+        }
+        const context = await browser.createIncognitoBrowserContext(); // incognito mode
         const page = await context.newPage();
 
         if ( req.query.user_agent ) {
@@ -83,10 +91,28 @@ function _handleRequest( req, res ) {
         }
 
         await _processRequest( url, page, req, res, responseHTTP, _type );
-        await browser.close();
+
+        // Clear cookies @see https://github.com/puppeteer/puppeteer/issues/5253#issuecomment-688861236
+        const client = await page.target().createCDPSession();
+        await client.send('Network.clearBrowserCookies' );
+
+        browserWSEndpoint = browser.wsEndpoint();
+        // await browser.close();
 
     })();
   }
+
+    /**
+     *
+     * @param   page
+     * @param   req
+     * @param   typeOutput
+     * @param   urlRequest
+     * @returns {Promise<void>}
+     * @private
+     * @see     https://qiita.com/unhurried/items/56ea099c895fa437b56e
+     * @see     https://github.com/puppeteer/puppeteer/issues/5334
+     */
     async function _disableImages( page, req, typeOutput, urlRequest ) {
 
       let _imageExtensions = [ 'pdf', 'jpg', 'jpeg', 'png', 'gif' ];
@@ -118,7 +144,7 @@ function _handleRequest( req, res ) {
               break;
           }
         } catch (e) {
-          console.log(e);
+          console.log( new Date().toLocaleTimeString(), e );
         }
 
       } );
@@ -259,7 +285,7 @@ function _handleRequest( req, res ) {
           let _ssx = parseInt( req.query.ssx ) || 0;
           let _ssy = parseInt( req.query.ssy ) || 0;
           let _maxW = bodyWidth - _ssx;
-          let _maxH = bodyWidth - _ssy;
+          let _maxH = bodyHeight - _ssy;
           let _ssw = parseInt( req.query.ssw ) || _maxW;
           _ssw = Math.min( _ssw, _maxW );
           let _ssh = parseInt( req.query.ssh ) || _maxH;
@@ -330,6 +356,6 @@ function _handleRequest( req, res ) {
     let _stats   = fs.statSync( path );
     let _mtime   = _stats.mtime;
     let _seconds = (new Date().getTime() - _stats.mtime) / 1000;
-    console.log( 'modified time: ', _mtime, `modified ${_seconds} ago`, 'expired?: ', _seconds >= cacheLifetime );
+  console.log( 'modified time: ', _mtime, `modified ${_seconds} ago`, 'expired?: ', _seconds >= cacheLifetime );
     return _seconds >= cacheLifetime;
   }
