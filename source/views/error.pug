@@ -3,8 +3,8 @@ extends layout/layout
 block content
   div.m-5
     h1.title= message
-    p.subtitle= error.status + ' ' +  error.message
-    if dev
+    if error
+      p.subtitle= error.status + ' ' +  error.message
       pre #{error.stack}
 
 block footer
