@@ -1,7 +1,5 @@
 extends index
 
-block content
-  include ./content-top.pug
-  section.section
-    div.container
-      include ./content-error.pug
+block content-main
+  h1.title= message
+  p.subtitle= error.status + ' ' +  error.message
