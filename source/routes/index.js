@@ -7,9 +7,11 @@ const path = require('path');
 const hash = require( 'object-hash' ); // @see https://www.npmjs.com/package/object-hash
 const fse = require( 'fs-extra' );
 const username = require( 'username' );
-
+const util = require('util');
 const cacheLifespan = 86400;
 
+let requestStarted;
+let debugOutput     = [];
 let browserWSEndpoint;
 /**
  * Stores flags indicating whether a URL request is handled or not.
@@ -17,11 +19,11 @@ let browserWSEndpoint;
  */
 let requested = {};
 
-router.get('/', function(req, res) {
-  _handleRequest( req, res );
+router.get('/', function(req, res, next ) {
+  _handleRequest( req, res, next );
 });
-router.post('/', function(req, res) {
-  _handleRequest( req, res );
+router.post('/', function(req, res, next ) {
+  _handleRequest( req, res, next );
 });
 
 // @see system temp dir https://www.npmjs.com/package/temp-dir
@@ -29,79 +31,147 @@ router.post('/', function(req, res) {
 
 module.exports = router;
 
-function _handleRequest( req, res ) {
-  requested = {};
-  let url = 'undefined' !== typeof req.query.url && req.query.url
+function _handleRequest( req, res, next ) {
+
+  requestStarted = Date.now();
+  debugOutput    = [];
+  requested      = {};
+  let _urlThis = 'undefined' !== typeof req.query.url && req.query.url
     ? decodeURI( req.query.url ).replace(/\/$/, "") // trim trailing slashes
     : '';
-  if ( ! url ) {
-    res.render('index', req.app.get( 'config' ));
+  if ( ! _urlThis ) {
+    res.render( 'index', req.app.get( 'config' ) );
     return;
   }
-  _render( url, req, res );
+
+  (async () => {
+    try {
+      await _render( _urlThis, req, res );
+    } catch ( e ) {
+      debugLog( e );
+      next( e );
+    }
+  })();
 
 }
   /**
    * Display the fetched contents
-   * @param url
+   * @param urlThis
    * @param req
    * @param res
    * @private
    * @see https://github.com/puppeteer/puppeteer/issues/1273#issuecomment-667646971
    */
-  function _render( url, req, res ) {
+  async function _render( urlThis, req, res ) {
 
-    let _type = 'undefined' !== typeof req.query.output && req.query.output
+    let _typeOutput = 'undefined' !== typeof req.query.output && req.query.output
       ? req.query.output.toLowerCase()
       : '';
 
-    (async () => {
+    let browser  = await _getBrowser( browserWSEndpoint, req );
 
-        let browser = undefined;
-        if ( browserWSEndpoint ) {
-          browser = await puppeteer.connect({browserWSEndpoint: browserWSEndpoint } );
-        }
-        if ( 'undefined' === typeof browser ) {
-          browser = await puppeteer.launch({
-            headless: true,
-            userDataDir: req.app.get( 'tempDirPath' ) + '/user-data/' + await username(),
-            args: [
-              '--no-sandbox',
-              '--start-maximized', // Start in maximized state // @see https://github.com/puppeteer/puppeteer/issues/1273#issuecomment-667646971
-              '--disk-cache-dir=' + req.app.get( 'tempDirPath' ) + '/user-data/disk-cache',
-            ]
-          });
-        }
-        const context = await browser.createIncognitoBrowserContext(); // incognito mode
-        const page = await context.newPage();
+    // Incognito mode
+    // let context = await browser.createIncognitoBrowserContext();
+    // let page    = await context.newPage();
+    // const [page] = await context.pages(); // <-- causes an error
 
-        if ( req.query.user_agent ) {
-          await page.setUserAgent( req.query.user_agent );
-        }
+    let page    = await browser.newPage();
+    // const [page] = await browser.pages(); // uses the tab already opened when launched
 
-        await _disableImages( page, req, _type, url );
-        await _handleCaches( page, req );
-        await page.setCacheEnabled( true );
-        const responseHTTP = await page.goto( url, {
-          waitUntil: [ "networkidle0", "networkidle2", "domcontentloaded" ],
-          timeout: 30000,
-        });
-        if ( parseInt( req.query.reload ) ) {
-          await page.reload({ waitUntil: [ "networkidle0", "networkidle2", "domcontentloaded" ] } );
-        }
+    // Use cache
+    let _useCache = 'undefined' === typeof req.query.cache
+      ? true
+      : Boolean( parseInt( req.query.cache ) );
+    debugLog( 'use cache:', _useCache );
+    await page.setCacheEnabled( _useCache );
+    await page._client.send( 'Network.setCacheDisabled', {  // @see https://github.com/puppeteer/puppeteer/issues/2497#issuecomment-509959074
+      cacheDisabled: ! _useCache
+    });
 
-        await _processRequest( url, page, req, res, responseHTTP, _type );
-        await page.goto( 'about:blank' );
+    if ( req.query.user_agent ) {
+      await page.setUserAgent( req.query.user_agent );
+    }
 
-        // Clear cookies @see https://github.com/puppeteer/puppeteer/issues/5253#issuecomment-688861236
-        const client = await page.target().createCDPSession();
-        await client.send('Network.clearBrowserCookies' );
+    // Caching
+    await _disableHTMLResources( page, req, _typeOutput, urlThis );
+    // await _handleCaches( page, req ); // @deprecated
 
-        browserWSEndpoint = browser.wsEndpoint();
-        // await browser.close(); // reuse the browser instance
+    // Debug
+    page.on( 'response', async _response => {
+      debugLog( 'using cache:', await _response.fromCache(), await _response.request().resourceType(), await _response.url() );
+    });
 
-    })();
+    let responseHTTP = await page.goto( urlThis, {
+      waitUntil: [ "networkidle0", "networkidle2", "domcontentloaded" ],
+      timeout: 'undefined' === typeof req.query.timeout ? 30000 : parseInt( req.query.timeout ),
+    });
+
+    if ( parseInt( req.query.reload ) ) {
+      debugLog( 'reloading' );
+      responseHTTP = await page.reload({ waitUntil: [ "networkidle0", "networkidle2", "domcontentloaded" ] } );
+    }
+
+    debugLog( 'using cache:', await responseHTTP.fromCache(), await responseHTTP.request().resourceType(), await responseHTTP.url() );
+    debugLog( 'Elapsed:', Date.now() - requestStarted, 'ms' );
+
+    await _processRequest( urlThis, page, req, res, responseHTTP, _typeOutput );
+    await page.goto( 'about:blank' );
+
+    // Clear cookies @see https://github.com/puppeteer/puppeteer/issues/5253#issuecomment-688861236
+    const client = await page.target().createCDPSession();
+    await client.send('Network.clearBrowserCookies' );
+
+    browserWSEndpoint = browser.wsEndpoint();
+    await page.close();
+    // await browser.close(); // not closing the browser instance to reuse it
+
+
+
   }
+
+    async function _getBrowser( browserWSEndpoint, req ) {
+
+      let _userDataDirPath = req.app.get( 'tempDirPath' ) + '/user-data/' + await username();
+
+      try {
+
+        browserWSEndpoint = browserWSEndpoint.includes( '--user-data-dir=' )
+          ? browserWSEndpoint
+          : browserWSEndpoint + '?--user-data-dir="' + _userDataDirPath + '"'; // @see https://docs.browserless.io/blog/2019/05/03/improving-puppeteer-performance.html
+        debugLog( 'browser ws endpoint:', browserWSEndpoint );
+        return await puppeteer.connect({browserWSEndpoint: browserWSEndpoint } );
+
+      } catch (e) {
+
+        debugLog( 'newly launching browser' );
+        return await puppeteer.launch({
+          headless: true,
+          userDataDir: _userDataDirPath,
+          args: [
+
+            '--start-maximized', // Start in maximized state for screenshots // @see https://github.com/puppeteer/puppeteer/issues/1273#issuecomment-667646971
+            '--disk-cache-dir=' + req.app.get( 'tempDirPath' ) + '/user-data/disk-cache',
+
+            '--disable-background-networking',
+
+            // To save CPU usage, @see https://stackoverflow.com/a/58589026
+            // '--no-sandbox',
+            // '--disable-setuid-sandbox',
+            // '--disable-dev-shm-usage',
+            // '--disable-accelerated-2d-canvas',
+            // '--no-first-run',
+            // '--no-zygote',
+            // '--disable-gpu'
+
+            // Not working
+            // '--single-process', // <- causes an error in Windows
+            // '--incognito', // <-- doesn't create new tabs in the incognito window
+
+            // For more options @see https://github.com/puppeteer/puppeteer/issues/824#issue-258832025
+          ]
+        });
+      }
+    }
 
     /**
      *
@@ -114,10 +184,13 @@ function _handleRequest( req, res ) {
      * @see     https://qiita.com/unhurried/items/56ea099c895fa437b56e
      * @see     https://github.com/puppeteer/puppeteer/issues/5334
      */
-    async function _disableImages( page, req, typeOutput, urlRequest ) {
+    async function _disableHTMLResources( page, req, typeOutput, urlRequest ) {
+
+      await page.setRequestInterception( true );
 
       let _imageExtensions = [ 'pdf', 'jpg', 'jpeg', 'png', 'gif' ];
       if ( _imageExtensions.includes( typeOutput ) ) {
+        await page.setRequestInterception( false );
         return;
       }
       let _urlParsedMain = urlModule.parse( urlRequest );
@@ -142,14 +215,23 @@ function _handleRequest( req, res ) {
               await request.abort();
               break;
             default:
+              await request.continue();
               break;
           }
-        } catch (e) {
-          console.log( new Date().toLocaleTimeString(), e );
+        } catch ( e ) {
+          debugLog( e );
         }
 
       } );
     }
+
+    /**
+     * @param page
+     * @param req
+     * @returns {Promise<void>}
+     * @private
+     * @deprecated
+     */
     async function _handleCaches( page, req ) {
 
       let _cacheDuration = 'undefined' === typeof req.query.cache_duration
@@ -161,7 +243,6 @@ function _handleRequest( req, res ) {
        * @see https://stackoverflow.com/a/58639496
        * @see https://github.com/puppeteer/puppeteer/issues/3118#issuecomment-643531996
        */
-      await page.setRequestInterception( true );
       page.on( 'request', async request => {
 
         // Already handled in other callbacks.
@@ -169,7 +250,7 @@ function _handleRequest( req, res ) {
           return;
         }
 
-        let _hash = _getCacheHash( request.url(), request.resourceType(), request.method(), req.query );
+        let _hash = _getCacheHash( await request.url(), await request.resourceType(), await request.method(), req.query );
         let _cachePath = req.app.get( 'tempDirPathCache' ) + path.sep + _hash + '.dat';
         let _cachePathContentType = req.app.get( 'tempDirPathCache' ) + path.sep + _hash + '.type.txt';
 
@@ -184,9 +265,9 @@ function _handleRequest( req, res ) {
         }
 
         try {
-            await request.continue();
+          await request.continue();
         } catch (err) {
-            console.log( new Date().toLocaleTimeString(), err );
+          debugLog( err );
         }
 
       });
@@ -203,7 +284,13 @@ function _handleRequest( req, res ) {
           }
 
           // Save caches
-          let _hash        = _getCacheHash( response.url(), response.request().resourceType(), response.method, req.query );
+          let _hash        = _getCacheHash( await response.url(), await response.request().resourceType(), response.method, req.query );
+debugLog( 'save cache', {
+  'url': await response.url(),
+  'resourceTYpe': await response.request().resourceType(),
+  'method': response.method,
+  'query': req.query,
+} );
           let _cachePath   = req.app.get( 'tempDirPathCache' ) + path.sep + _hash + '.dat';
           if ( ! _isCacheExpired( _cachePath, _cacheDuration ) ) {
             return;
@@ -225,6 +312,12 @@ function _handleRequest( req, res ) {
     }
     async function _processRequest( url, page, req, res, responseHTTP, _type ) {
 
+      if ( [ 'debug' ].includes( _type ) ) {
+        res.locals.debugOutput = debugOutput;
+        res.render( 'debug', req.app.get( 'config' ) );
+        return;
+      }
+
       if ( ! _type || [ 'json' ].includes( _type ) ) {
         res.setHeader( 'Content-Type', 'application/json' );
         res.json( {
@@ -242,10 +335,10 @@ function _handleRequest( req, res ) {
       if ( [ 'htm', 'html' ].includes( _type ) ) {
         // Transfer response headers
         // const _headers = responseHTTP.headers();
-        // console.log( 'Headers Sanitized', _sanitizeHeaders( _headers ) );
+        // debugLogconsole.log( 'Headers Sanitized', _sanitizeHeaders( _headers ) );
 
   //       Object.keys( _headers ).forEach(function(key, index) {
-  // console.log( key, this[key] );
+  // debugLog( key, this[key] );
   //           res.setHeader( key, this[key] );
   //         }, _sanitizeHeaders( _headers )
   //       );
@@ -341,7 +434,7 @@ function _handleRequest( req, res ) {
    */
   function _getCacheHash( url, resourceType, method, query ) {
     let _hashObject  = {
-      url: url
+      url: url,
     };
     if ( [ 'document' ].includes( resourceType ) ) {
       _hashObject[ 'method' ] = method;
@@ -357,6 +450,12 @@ function _handleRequest( req, res ) {
     let _stats   = fs.statSync( path );
     let _mtime   = _stats.mtime;
     let _seconds = (new Date().getTime() - _stats.mtime) / 1000;
-  console.log( 'modified time: ', _mtime, `modified ${_seconds} ago`, 'expired?: ', _seconds >= cacheLifetime );
+    debugLog( 'modified time: ', _mtime, `modified ${_seconds} ago`, 'expired?: ', _seconds >= cacheLifetime );
     return _seconds >= cacheLifetime;
+  }
+
+  function debugLog( ...args ) {
+    args.unshift( new Date().toLocaleTimeString( [], { hour12: false } ) );
+    console.log.apply(null, args );
+    debugOutput.push( util.format.apply( null, args ) );
   }

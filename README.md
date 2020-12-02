@@ -10,6 +10,11 @@ Only the `url` parameter is required. The rest is optional.
 #### (required, string) url 
 A URL-encoded URL to fetch. 
 
+e.g.
+```
+http://{app address}/?url=https%3A%2F%2Fgithub.com
+```
+
 #### (string) output
 The output type. Accepts the following values:
 - `json` (default) - outputs the site source code, the HTTP header, the HTTP status code, and content type as JSON with the following root keys: 
@@ -49,8 +54,15 @@ Specifies whether to reload the internal browser. This is useful for cookie depe
 
 Accepts `1` or `0`.
 
-#### (integer) cache_duration
-Sets how long the cache should be retained.
+#### (integer) cache
+Decides whether to use browser caches.
+
+Accepts `1` or `0`.
+
+#### (integer) timeout
+The browser connection timeout in milliseconds.
+
+Default: `30000`.
 
 #### (string) user_agent
 Specifies a user agent.
