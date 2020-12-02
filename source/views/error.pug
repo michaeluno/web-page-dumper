@@ -3,3 +3,5 @@ extends index
 block content-main
   h1.title= message
   p.subtitle= error.status + ' ' +  error.message
+  if dev
+    pre #{error.stack}
