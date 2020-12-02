@@ -1,0 +1,10 @@
+extends index
+
+block content-main
+  h1.title Debug
+  p.subtitle Debug Log
+  pre
+    code
+      ul
+        each logItem in debugOutput
+          li= logItem
