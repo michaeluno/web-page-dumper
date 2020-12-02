@@ -1,7 +1,10 @@
-extends index
+extends layout/layout
 
-block content-main
-  h1.title= message
-  p.subtitle= error.status + ' ' +  error.message
-  if dev
-    pre #{error.stack}
+block content
+  div.m-5
+    h1.title= message
+    p.subtitle= error.status + ' ' +  error.message
+    if dev
+      pre #{error.stack}
+
+block footer
