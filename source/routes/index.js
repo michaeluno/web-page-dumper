@@ -44,6 +44,8 @@ function _handleRequest( req, res, next ) {
     return;
   }
 
+  req.query = _getQueryFormatted( req.query );
+
   (async () => {
     try {
       await _render( _urlThis, req, res );
@@ -54,6 +56,22 @@ function _handleRequest( req, res, next ) {
   })();
 
 }
+  function _getQueryFormatted( query ) {
+    query.output  = 'undefined' !== typeof query.output && query.output ? query.output.toLowerCase() : '';
+    query.cache   = !! parseInt( query.cache );
+    query.cache_duration = 'undefined' === typeof query.cache_duration
+        ? cacheLifespan
+        : ( parseInt( query.cache_duration ) || cacheLifespan );
+    query.timeout = 'undefined' === typeof query.timeout ? 30000 : parseInt( query.timeout );
+    query.reload  = !! parseInt( query.reload );
+    query.vpw     = parseInt( query.vpw );
+    query.vph     = parseInt( query.vph );
+    query.ssw     = parseInt( query.ssw );
+    query.ssh     = parseInt( query.ssh );
+    query.ssx     = parseInt( query.ssx ) || 0;
+    query.ssy     = parseInt( query.ssy ) || 0;
+    return query;
+  }
   /**
    * Display the fetched contents
    * @param urlThis
@@ -64,9 +82,7 @@ function _handleRequest( req, res, next ) {
    */
   async function _render( urlThis, req, res ) {
 
-    let _typeOutput = 'undefined' !== typeof req.query.output && req.query.output
-      ? req.query.output.toLowerCase()
-      : '';
+    let _typeOutput = req.query.output;
 
     let browser  = await _getBrowser( browserWSEndpoint, req );
 
@@ -79,13 +95,10 @@ function _handleRequest( req, res, next ) {
     // const [page] = await browser.pages(); // uses the tab already opened when launched
 
     // Use cache
-    let _useCache = 'undefined' === typeof req.query.cache
-      ? true
-      : Boolean( parseInt( req.query.cache ) );
-    debugLog( 'use cache:', _useCache );
-    await page.setCacheEnabled( _useCache );
+    debugLog( 'use cache:', req.query.cache );
+    await page.setCacheEnabled( req.query.cache );
     await page._client.send( 'Network.setCacheDisabled', {  // @see https://github.com/puppeteer/puppeteer/issues/2497#issuecomment-509959074
-      cacheDisabled: ! _useCache
+      cacheDisabled: ! req.query.cache
     });
 
     if ( req.query.user_agent ) {
@@ -103,10 +116,10 @@ function _handleRequest( req, res, next ) {
 
     let responseHTTP = await page.goto( urlThis, {
       waitUntil: [ "networkidle0", "networkidle2", "domcontentloaded" ],
-      timeout: 'undefined' === typeof req.query.timeout ? 30000 : parseInt( req.query.timeout ),
+      timeout: req.query.timeout,
     });
 
-    if ( parseInt( req.query.reload ) ) {
+    if ( req.query.reload ) {
       debugLog( 'reloading' );
       responseHTTP = await page.reload({ waitUntil: [ "networkidle0", "networkidle2", "domcontentloaded" ] } );
     }
@@ -234,9 +247,7 @@ function _handleRequest( req, res, next ) {
      */
     async function _handleCaches( page, req ) {
 
-      let _cacheDuration = 'undefined' === typeof req.query.cache_duration
-        ? cacheLifespan
-        : parseInt( req.query.cache_duration );
+      let _cacheDuration = req.query.cache_duration;
 
       /**
        * Sending cached responses.
@@ -364,26 +375,29 @@ debugLog( 'save cache', {
       }
 
       // Get scroll width and height of the rendered page and set viewport
-      let _bodyWidth  = parseInt( req.query.vpw ) || await page.evaluate( () => document.body.scrollWidth );
-      let _bodyHeight = parseInt( req.query.vph ) || await page.evaluate( () => document.body.scrollHeight );
+      let _bodyWidth  = req.query.vpw || await page.evaluate( () => document.body.scrollWidth );
+      let _bodyHeight = req.query.vph || await page.evaluate( () => document.body.scrollHeight );
+      debugLog( 'viewport:', _bodyWidth, _bodyHeight, 'document body: ', await page.evaluate( () => document.body.scrollWidth ), await page.evaluate( () => document.body.scrollHeight ) );
       await page.setViewport({ width: _bodyWidth, height: _bodyHeight });
 
       if ( [ 'jpg', 'jpeg', 'png', 'gif' ].includes( _type ) ) {
         _type = 'jpg' === _type ? 'jpeg' : _type;
         let _getScreenShotOptions = function( req, bodyWidth, bodyHeight ) {
-          if ( ! ( parseInt( req.query.ssw ) || parseInt( req.query.ssh ) || parseInt( req.query.ssx ) || parseInt( req.query.ssy ) ) ) {
+          if ( ! ( req.query.ssw || req.query.ssh || req.query.ssx || req.query.ssy ) ) {
             return {
               'fullPage': true
             };
           }
-          let _ssx = parseInt( req.query.ssx ) || 0;
-          let _ssy = parseInt( req.query.ssy ) || 0;
+          let _ssx  = req.query.ssx;
+          let _ssy  = req.query.ssy;
           let _maxW = bodyWidth - _ssx;
           let _maxH = bodyHeight - _ssy;
-          let _ssw = parseInt( req.query.ssw ) || _maxW;
+          let _ssw  = req.query.ssw || _maxW;
           _ssw = Math.min( _ssw, _maxW );
-          let _ssh = parseInt( req.query.ssh ) || _maxH;
+          let _ssh  = req.query.ssh || _maxH;
           _ssh = Math.min( _ssh, _maxH );
+          debugLog( 'screenshot height calc', _ssh, _maxH, 'body height', bodyHeight, 'y offset', _ssy, 'document height' );
+          debugLog( 'screenshot dimension', _ssx, _ssy, _ssw, _ssh );
           return {
             clip: {
               x: _ssx,
