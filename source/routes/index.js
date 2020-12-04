@@ -88,7 +88,7 @@ function _handleRequest( req, res, next ) {
 
     let browser  = await _getBrowser( browserWSEndpoint, req );
 
-    // Incognito mode
+    // Incognito mode - deprecated as a new tab cannot be created but it forces to open a new window
     // let context = await browser.createIncognitoBrowserContext();
     // let page    = await context.newPage();
     // const [page] = await context.pages(); // <-- causes an error
