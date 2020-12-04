@@ -213,14 +213,17 @@ function _handleRequest( req, res, next ) {
       page.on( 'request', async request => {
 
         let _urlParsedThis = urlModule.parse( request.url() );
-        let _hostThis      = _urlParsedThis.hostname;
 
         // Resources from 3rd party domains
-        if ( _urlParsedMain.hostname !== _hostThis ) {
-            requested[ request.url() ] = true;
-            request.abort();
-            return
-        }
+        // @deprecated Redirected responses become unavailable such as entering https://amazon.com which results in https://www.amazon.com
+        // let _hostThis      = _urlParsedThis.hostname;
+        // if ( ! _hostThis.hostname.includes( _urlParsedMain ) ) {
+        //   debugLog( 'requested host', _urlParsedMain.hostname, 'parsing host', _hostThis );
+        //   requested[ request.url() ] = true;
+        //   request.abort();
+        //   return;
+        // }
+
         // Images
         try {
           switch (await request.resourceType()) {
