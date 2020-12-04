@@ -7,10 +7,9 @@ const path = require('path');
 const hash = require( 'object-hash' ); // @see https://www.npmjs.com/package/object-hash
 const fse = require( 'fs-extra' );
 const username = require( 'username' );
-const util = require('util');
 const cacheLifespan = 86400;
+const Debug = require( '../utility/debug.js' );
 
-let debugOutput     = [];
 let browserWSEndpoint;
 /**
  * Stores flags indicating whether a URL request is handled or not.
@@ -33,8 +32,8 @@ module.exports = router;
 
 function _handleRequest( req, res, next ) {
 
-  debugOutput    = [];
-  requested      = {};
+  requested    = {};
+  req.debug    = new Debug;
   let _urlThis = 'undefined' !== typeof req.query.url && req.query.url
     ? decodeURI( req.query.url ).replace(/\/$/, "") // trim trailing slashes
     : '';
@@ -43,19 +42,19 @@ function _handleRequest( req, res, next ) {
     return;
   }
 
-  req.query = _getQueryFormatted( req.query );
+  req.query = _getQueryFormatted( req.query, req );
 
   (async () => {
     try {
       await _render( _urlThis, req, res );
     } catch ( e ) {
-      debugLog( e );
+      req.debug.log( e );
       next( e );
     }
   })();
 
 }
-  function _getQueryFormatted( query ) {
+  function _getQueryFormatted( query, req ) {
     query.output  = 'undefined' !== typeof query.output && query.output ? query.output.toLowerCase() : '';
     query.cache   = 'undefined' === typeof query.cache
       ? true
@@ -71,7 +70,7 @@ function _handleRequest( req, res, next ) {
     query.ssh     = parseInt( query.ssh );
     query.ssx     = parseInt( query.ssx ) || 0;
     query.ssy     = parseInt( query.ssy ) || 0;
-    debugLog( 'query', query );
+    req.debug.log( 'query', query );
     return query;
   }
   /**
@@ -98,7 +97,7 @@ function _handleRequest( req, res, next ) {
     // const [page] = await browser.pages(); // uses the tab already opened when launched
 
     // Use cache
-    debugLog( 'use cache:', req.query.cache );
+    req.debug.log( 'use cache:', req.query.cache );
     await page.setCacheEnabled( req.query.cache );
     await page._client.send( 'Network.setCacheDisabled', {  // @see https://github.com/puppeteer/puppeteer/issues/2497#issuecomment-509959074
       cacheDisabled: ! req.query.cache
@@ -113,7 +112,7 @@ function _handleRequest( req, res, next ) {
 
     // Debug
     page.on( 'response', async _response => {
-      debugLog( await _response.fromCache() ? 'using cache:' : 'not using cache:', await _response.request().resourceType(), await _response.url() );
+      req.debug.log( await _response.fromCache() ? 'using cache:' : 'not using cache:', await _response.request().resourceType(), await _response.url() );
     });
 
     let responseHTTP = await page.goto( urlThis, {
@@ -122,11 +121,11 @@ function _handleRequest( req, res, next ) {
     });
 
     if ( req.query.reload ) {
-      debugLog( 'reloading' );
+      req.debug.log( 'reloading' );
       responseHTTP = await page.reload({ waitUntil: [ "networkidle0", "networkidle2", "domcontentloaded" ] } );
     }
 
-    debugLog( 'Elapsed:', Date.now() - _browsingStarted, 'ms' );
+    req.debug.log( 'Elapsed:', Date.now() - _browsingStarted, 'ms' );
 
     await _processRequest( urlThis, page, req, res, responseHTTP, _typeOutput );
     await page.goto( 'about:blank' );
@@ -141,7 +140,7 @@ function _handleRequest( req, res, next ) {
     // If after 60 seconds and the browser is not used, close it.
     setTimeout( function() {
       if ( Date.now() - _browsingStarted >= 60000 ) {
-        debugLog( 'closing the browser.' );
+        req.debug.log( 'closing the browser.' );
         browser.close(); // not closing the browser instance to reuse it
         browserWSEndpoint = '';
       }
@@ -162,12 +161,12 @@ function _handleRequest( req, res, next ) {
         browserWSEndpoint = browserWSEndpoint.includes( '--user-data-dir=' )
           ? browserWSEndpoint
           : browserWSEndpoint + '?--user-data-dir="' + _userDataDirPath + '"'; // @see https://docs.browserless.io/blog/2019/05/03/improving-puppeteer-performance.html
-        debugLog( 'browser ws endpoint:', browserWSEndpoint );
+        req.debug.log( 'browser ws endpoint:', browserWSEndpoint );
         return await puppeteer.connect({browserWSEndpoint: browserWSEndpoint } );
 
       } catch (e) {
 
-        debugLog( 'newly launching browser' );
+        req.debug.log( 'newly launching browser' );
         return await puppeteer.launch({
           headless: true,
           userDataDir: _userDataDirPath,
@@ -247,7 +246,7 @@ function _handleRequest( req, res, next ) {
               break;
           }
         } catch ( e ) {
-          debugLog( e );
+          req.debug.log( e );
         }
 
       } );
@@ -262,7 +261,7 @@ function _handleRequest( req, res, next ) {
     async function _handleCaches( page, req ) {
 
       if ( ! req.query.cache ) {
-        debugLog( 'cache is disabled' );
+        req.debug.log( 'cache is disabled' );
         return;
       }
 
@@ -279,7 +278,7 @@ function _handleRequest( req, res, next ) {
 
         // Already handled in other callbacks.
         if ( requested[ await request.url() ] ) {
-          debugLog( 'already handled:', await request.url() );
+          req.debug.log( 'already handled:', await request.url() );
           return;
         }
 
@@ -298,7 +297,7 @@ function _handleRequest( req, res, next ) {
         try {
           if ( fs.existsSync( _cachePath ) && ! _isCacheExpired( _cachePath, _cacheDuration ) ) {
             let _contentType = fs.existsSync( _cachePathContentType ) ? await fse.readFile( _cachePathContentType, 'utf8' ) : undefined;
-            debugLog( 'using cache:', _resourceType, await request.url() );
+            req.debug.log( 'using cache:', _resourceType, await request.url() );
             request.respond({
                 status: 200,
                 contentType: _contentType,
@@ -308,7 +307,7 @@ function _handleRequest( req, res, next ) {
           }
           await request.continue();
         } catch (err) {
-          debugLog( err );
+          req.debug.log( err );
         }
 
       });
@@ -340,7 +339,7 @@ function _handleRequest( req, res, next ) {
           if ( ! _buffer.length ) {
             return;
           }
-          debugLog( 'save cache', _hash, 'resourceType', await response.request().resourceType(), 'method', response.method, 'url', await response.url() );
+          req.debug.log( 'save cache', _hash, 'resourceType', await response.request().resourceType(), 'method', response.method, 'url', await response.url() );
           await fse.outputFile( _cachePath, _buffer );
           let _contentType = response.contentType ? response.contentType : response.headers()[ 'content-type' ]; // same as headers[ 'Content-Type' ];
           if ( _contentType ) {
@@ -353,7 +352,7 @@ function _handleRequest( req, res, next ) {
     async function _processRequest( url, page, req, res, responseHTTP, _type ) {
 
       if ( [ 'debug' ].includes( _type ) ) {
-        res.locals.debugOutput = debugOutput;
+        res.locals.debugOutput = req.debug.entries;
         res.render( 'debug', req.app.get( 'config' ) );
         return;
       }
@@ -406,7 +405,7 @@ function _handleRequest( req, res, next ) {
       // Get scroll width and height of the rendered page and set viewport
       let _bodyWidth  = req.query.vpw || await page.evaluate( () => document.body.scrollWidth );
       let _bodyHeight = req.query.vph || await page.evaluate( () => document.body.scrollHeight );
-      debugLog( 'viewport:', _bodyWidth, _bodyHeight, 'document body: ', await page.evaluate( () => document.body.scrollWidth ), await page.evaluate( () => document.body.scrollHeight ) );
+      req.debug.log( 'viewport:', _bodyWidth, _bodyHeight, 'document body: ', await page.evaluate( () => document.body.scrollWidth ), await page.evaluate( () => document.body.scrollHeight ) );
       await page.setViewport({ width: _bodyWidth, height: _bodyHeight });
 
       if ( [ 'jpg', 'jpeg', 'png', 'gif' ].includes( _type ) ) {
@@ -425,8 +424,8 @@ function _handleRequest( req, res, next ) {
           _ssw = Math.min( _ssw, _maxW );
           let _ssh  = req.query.ssh || _maxH;
           _ssh = Math.min( _ssh, _maxH );
-          debugLog( 'screenshot height calc', _ssh, _maxH, 'body height', bodyHeight, 'y offset', _ssy, 'document height' );
-          debugLog( 'screenshot dimension', _ssx, _ssy, _ssw, _ssh );
+          req.debug.log( 'screenshot height calc', _ssh, _maxH, 'body height', bodyHeight, 'y offset', _ssy, 'document height' );
+          req.debug.log( 'screenshot dimension', _ssx, _ssy, _ssw, _ssh );
           return {
             clip: {
               x: _ssx,
@@ -494,10 +493,4 @@ function _handleRequest( req, res, next ) {
     let _seconds = (new Date().getTime() - _stats.mtime) / 1000;
     // debugLog( 'expired:', _seconds >= cacheLifetime, 'modified time: ', _mtime, `modified ${_seconds} ago` );
     return _seconds >= cacheLifetime;
-  }
-
-  function debugLog( ...args ) {
-    args.unshift( new Date().toLocaleTimeString( [], { hour12: false } ) );
-    console.log.apply(null, args );
-    debugOutput.push( util.format.apply( null, args ) );
   }
