@@ -16,7 +16,8 @@ var bodyParser = require('body-parser');
 var multer = require('multer');
 var upload = multer();
 
-var indexRouter = require('./routes/index');
+var routerIndex = require( './routes/index' );
+var routerWWW   = require( './routes/www' );
 // var usersRouter = require('./routes/users'); // @deprecated
 
 var app = express();
@@ -82,7 +83,8 @@ app.use(upload.array());
 app.use(express.static('public'));
 
 
-app.use('/', indexRouter);
+app.use( '/', routerIndex );
+app.use( '/www', routerWWW );
 // app.use('/users', usersRouter); // not using
 
 // catch 404 and forward to error handler

@@ -3,7 +3,14 @@ Dumps web site contents.
 
 ## Usage
 
-### Parameters
+Access the app address following the path `/www/` with query parameters of the GET or POST method. 
+
+e.g.
+```
+http(s)://{app address}/www/?url=https%3A%2F%2Fexample.com
+```
+
+### Query Parameters
 
 Only the `url` parameter is required. The rest is optional.
 
@@ -12,7 +19,7 @@ A URL-encoded URL to fetch.
 
 e.g.
 ```
-http://{app address}/?url=https%3A%2F%2Fgithub.com
+http(s)://{app address}/www/?url=https%3A%2F%2Fgithub.com
 ```
 
 #### (string) output
