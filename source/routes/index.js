@@ -58,7 +58,9 @@ function _handleRequest( req, res, next ) {
 }
   function _getQueryFormatted( query ) {
     query.output  = 'undefined' !== typeof query.output && query.output ? query.output.toLowerCase() : '';
-    query.cache   = !! parseInt( query.cache );
+    query.cache   = 'undefined' === typeof query.cache
+      ? true
+      : !! parseInt( query.cache );
     query.cache_duration = 'undefined' === typeof query.cache_duration
         ? cacheLifespan
         : ( parseInt( query.cache_duration ) || cacheLifespan );
