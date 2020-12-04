@@ -430,7 +430,7 @@ debugLog( 'save cache', {
 
   /**
    *
-   * @param url
+   * @param urlResource
    * @param resourceType Either of the following:
    * - document
    * - stylesheet
@@ -451,13 +451,12 @@ debugLog( 'save cache', {
    * @returns {*}
    * @private
    */
-  function _getCacheHash( url, resourceType, method, query ) {
+  function _getCacheHash( urlResource, resourceType, method, query ) {
     let _hashObject  = {
-      url: url,
+      url: urlResource,
     };
     if ( [ 'document' ].includes( resourceType ) ) {
       _hashObject[ 'method' ] = method;
-      _hashObject[ 'query' ]  = query;
     }
     return hash( _hashObject );
   }
