@@ -33,7 +33,6 @@ module.exports = router;
 
 function _handleRequest( req, res, next ) {
 
-  requestStarted = Date.now();
   debugOutput    = [];
   requested      = {};
   let _urlThis = 'undefined' !== typeof req.query.url && req.query.url
@@ -85,6 +84,7 @@ function _handleRequest( req, res, next ) {
    */
   async function _render( urlThis, req, res ) {
 
+    requestStarted = Date.now();
     let _typeOutput = req.query.output;
 
     let browser  = await _getBrowser( browserWSEndpoint, req );
@@ -113,9 +113,7 @@ function _handleRequest( req, res, next ) {
 
     // Debug
     page.on( 'response', async _response => {
-      if ( ! await _response.fromCache() ) {
-        debugLog( 'not using cache:', await _response.request().resourceType(), await _response.url() );
-      }
+      debugLog( await _response.fromCache() ? 'using cache:' : 'not using cache:', await _response.request().resourceType(), await _response.url() );
     });
 
     let responseHTTP = await page.goto( urlThis, {
@@ -139,9 +137,15 @@ function _handleRequest( req, res, next ) {
 
     browserWSEndpoint = browser.wsEndpoint();
     await page.close();
-    // await browser.close(); // not closing the browser instance to reuse it
 
-
+    // If after 60 seconds and the browser is not used, close it.
+    setTimeout( function() {
+      if ( Date.now() - requestStarted >= 60000 ) {
+        debugLog( 'closing the browser.' );
+        browser.close(); // not closing the browser instance to reuse it
+        browserWSEndpoint = '';
+      }
+    }, 60000 );
 
   }
 
@@ -150,6 +154,10 @@ function _handleRequest( req, res, next ) {
       let _userDataDirPath = req.app.get( 'tempDirPath' ) + '/user-data/' + await username();
 
       try {
+
+        if ( ! browserWSEndpoint ) {
+          throw new Error( 'A previous browser instance does not exist.' );
+        }
 
         browserWSEndpoint = browserWSEndpoint.includes( '--user-data-dir=' )
           ? browserWSEndpoint
