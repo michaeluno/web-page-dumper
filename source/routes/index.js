@@ -108,7 +108,7 @@ function _handleRequest( req, res, next ) {
     await page.setUserAgent( req.query.user_agent || ( await browser.userAgent() ).replace( 'Headless', '' ) );
 
     // Caching
-    await _disableHTMLResources( page, req, _typeOutput, urlThis );
+    // await _disableHTMLResources( page, req, _typeOutput, urlThis );
     // await _handleCaches( page, req ); // @deprecated
 
     // Debug
@@ -235,6 +235,7 @@ function _handleRequest( req, res, next ) {
               break;
             default:
               await request.continue();
+              // allows the cache method to handle it
               break;
           }
         } catch ( e ) {
@@ -249,9 +250,15 @@ function _handleRequest( req, res, next ) {
      * @param req
      * @returns {Promise<void>}
      * @private
-     * @deprecated
      */
     async function _handleCaches( page, req ) {
+
+      if ( ! req.query.cache ) {
+        debugLog( 'cache is disabled' );
+        return;
+      }
+
+      await page.setRequestInterception( true );
 
       let _cacheDuration = req.query.cache_duration;
 
@@ -268,21 +275,29 @@ function _handleRequest( req, res, next ) {
           return;
         }
 
-        let _hash = _getCacheHash( await request.url(), await request.resourceType(), await request.method(), req.query );
+        // Document is often not cached. Other types such as image and font are usually cached.
+        let _resourceType = await request.resourceType();
+        // if ( ! [ 'document' ].includes( _resourceType ) ) {
+        //   await request.continue();
+        //   return;
+        // }
+
+        let _hash = _getCacheHash( await request.url(), _resourceType, await request.method(), req.query );
         let _cachePath = req.app.get( 'tempDirPathCache' ) + path.sep + _hash + '.dat';
         let _cachePathContentType = req.app.get( 'tempDirPathCache' ) + path.sep + _hash + '.type.txt';
 
-        if ( fs.existsSync( _cachePath ) && _isCacheExpired( _cachePath, _cacheDuration ) ) {
-          let _contentType = fs.existsSync( _cachePathContentType ) ? await fse.readFile( _cachePathContentType, 'utf8' ) : undefined;
-          request.respond({
-              status: 200,
-              contentType: _contentType,
-              body: await fse.readFile( _cachePath ),
-          });
-          return;
-        }
-
+        requested[ await request.url() ] = true;
         try {
+          if ( fs.existsSync( _cachePath ) && ! _isCacheExpired( _cachePath, _cacheDuration ) ) {
+            let _contentType = fs.existsSync( _cachePathContentType ) ? await fse.readFile( _cachePathContentType, 'utf8' ) : undefined;
+            debugLog( 'using cache:', _resourceType, await request.url() );
+            request.respond({
+                status: 200,
+                contentType: _contentType,
+                body: await fse.readFile( _cachePath )
+            });
+            return;
+          }
           await request.continue();
         } catch (err) {
           debugLog( err );
@@ -302,13 +317,11 @@ function _handleRequest( req, res, next ) {
           }
 
           // Save caches
-          let _hash        = _getCacheHash( await response.url(), await response.request().resourceType(), response.method, req.query );
-debugLog( 'save cache', {
-  'url': await response.url(),
-  'resourceTYpe': await response.request().resourceType(),
-  'method': response.method,
-  'query': req.query,
-} );
+          let _resourceType = await response.request().resourceType();
+          // if ( ! [ 'document' ].includes( _resourceType ) ) {
+          //   return;
+          // }
+          let _hash         = _getCacheHash( await response.url(), _resourceType, response.method, req.query );
           let _cachePath   = req.app.get( 'tempDirPathCache' ) + path.sep + _hash + '.dat';
           if ( ! _isCacheExpired( _cachePath, _cacheDuration ) ) {
             return;
