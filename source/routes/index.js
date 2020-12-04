@@ -103,9 +103,8 @@ function _handleRequest( req, res, next ) {
       cacheDisabled: ! req.query.cache
     });
 
-    if ( req.query.user_agent ) {
-      await page.setUserAgent( req.query.user_agent );
-    }
+    // User Agent
+    await page.setUserAgent( req.query.user_agent || ( await browser.userAgent() ).replace( 'Headless', '' ) );
 
     // Caching
     await _disableHTMLResources( page, req, _typeOutput, urlThis );
