@@ -15,4 +15,14 @@ $(function() {
   } )
   $( '.output input:checked' ).trigger( 'change' );
 
+  // Remove name attributes of the inputs in the advanced section. Those inputs are optional, not required.
+  $( 'form[name=main]' ).submit(function( event ) {
+
+    // Remove input names of empty values so that the following page do not have redundant query values.
+    $( '.advanced input, .advanced select' ).filter( function(){
+      return ! this.value.length;
+    } ).removeAttr( 'name' );
+
+  });
+
 });
