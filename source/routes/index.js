@@ -72,6 +72,7 @@ function _handleRequest( req, res, next ) {
     query.ssh     = parseInt( query.ssh );
     query.ssx     = parseInt( query.ssx ) || 0;
     query.ssy     = parseInt( query.ssy ) || 0;
+    debugLog( 'query', query );
     return query;
   }
   /**
@@ -112,7 +113,9 @@ function _handleRequest( req, res, next ) {
 
     // Debug
     page.on( 'response', async _response => {
-      debugLog( 'using cache:', await _response.fromCache(), await _response.request().resourceType(), await _response.url() );
+      if ( ! await _response.fromCache() ) {
+        debugLog( 'not using cache:', await _response.request().resourceType(), await _response.url() );
+      }
     });
 
     let responseHTTP = await page.goto( urlThis, {
@@ -125,7 +128,6 @@ function _handleRequest( req, res, next ) {
       responseHTTP = await page.reload({ waitUntil: [ "networkidle0", "networkidle2", "domcontentloaded" ] } );
     }
 
-    debugLog( 'using cache:', await responseHTTP.fromCache(), await responseHTTP.request().resourceType(), await responseHTTP.url() );
     debugLog( 'Elapsed:', Date.now() - requestStarted, 'ms' );
 
     await _processRequest( urlThis, page, req, res, responseHTTP, _typeOutput );
@@ -259,6 +261,7 @@ function _handleRequest( req, res, next ) {
 
         // Already handled in other callbacks.
         if ( requested[ await request.url() ] ) {
+          debugLog( 'already handled:', await request.url() );
           return;
         }
 
@@ -313,6 +316,7 @@ debugLog( 'save cache', {
           if ( ! _buffer.length ) {
             return;
           }
+          debugLog( 'save cache', _hash, 'resourceType', await response.request().resourceType(), 'method', response.method, 'url', await response.url() );
           await fse.outputFile( _cachePath, _buffer );
           let _contentType = response.contentType ? response.contentType : response.headers()[ 'content-type' ]; // same as headers[ 'Content-Type' ];
           if ( _contentType ) {
@@ -465,7 +469,7 @@ debugLog( 'save cache', {
     let _stats   = fs.statSync( path );
     let _mtime   = _stats.mtime;
     let _seconds = (new Date().getTime() - _stats.mtime) / 1000;
-    debugLog( 'modified time: ', _mtime, `modified ${_seconds} ago`, 'expired?: ', _seconds >= cacheLifetime );
+    // debugLog( 'expired:', _seconds >= cacheLifetime, 'modified time: ', _mtime, `modified ${_seconds} ago` );
     return _seconds >= cacheLifetime;
   }
 
