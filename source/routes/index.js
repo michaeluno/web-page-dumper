@@ -10,12 +10,12 @@ const username = require( 'username' );
 const util = require('util');
 const cacheLifespan = 86400;
 
-let requestStarted;
 let debugOutput     = [];
 let browserWSEndpoint;
 /**
  * Stores flags indicating whether a URL request is handled or not.
  * @type {{}}
+ * @deprecated Not used anymore as the cache mechanism are deprecated. Also, declaring it in this scope is somewhat error prone as it will be continuously available in different requests.
  */
 let requested = {};
 
@@ -84,7 +84,7 @@ function _handleRequest( req, res, next ) {
    */
   async function _render( urlThis, req, res ) {
 
-    requestStarted = Date.now();
+    let _browsingStarted = Date.now();
     let _typeOutput = req.query.output;
 
     let browser  = await _getBrowser( browserWSEndpoint, req );
@@ -126,7 +126,7 @@ function _handleRequest( req, res, next ) {
       responseHTTP = await page.reload({ waitUntil: [ "networkidle0", "networkidle2", "domcontentloaded" ] } );
     }
 
-    debugLog( 'Elapsed:', Date.now() - requestStarted, 'ms' );
+    debugLog( 'Elapsed:', Date.now() - _browsingStarted, 'ms' );
 
     await _processRequest( urlThis, page, req, res, responseHTTP, _typeOutput );
     await page.goto( 'about:blank' );
@@ -140,7 +140,7 @@ function _handleRequest( req, res, next ) {
 
     // If after 60 seconds and the browser is not used, close it.
     setTimeout( function() {
-      if ( Date.now() - requestStarted >= 60000 ) {
+      if ( Date.now() - _browsingStarted >= 60000 ) {
         debugLog( 'closing the browser.' );
         browser.close(); // not closing the browser instance to reuse it
         browserWSEndpoint = '';
