@@ -352,6 +352,7 @@ function _handleRequest( req, res, next ) {
     async function _processRequest( url, page, req, res, responseHTTP, _type ) {
 
       if ( [ 'debug' ].includes( _type ) ) {
+        req.debug.log( 'headers:', await responseHTTP.headers() );
         res.locals.debugOutput = req.debug.entries;
         res.render( 'debug', req.app.get( 'config' ) );
         return;
@@ -372,18 +373,30 @@ function _handleRequest( req, res, next ) {
       }
 
       if ( [ 'htm', 'html' ].includes( _type ) ) {
+
         // Transfer response headers
-        // const _headers = responseHTTP.headers();
-        // debugLogconsole.log( 'Headers Sanitized', _sanitizeHeaders( _headers ) );
+        /// Remove default ones.
+        res.removeHeader("set-cookie" );
+        res.removeHeader( "Set-Cookie" );
+        res.removeHeader( "Connection" );
+        res.removeHeader( "Content-Length" );
+        res.removeHeader( "Content-Type" );
+        res.removeHeader( "Date" );
+        res.removeHeader( "ETag" );
+        res.removeHeader( "Keep-Alive" );
+        res.removeHeader( "X-DNS-Prefetch-Control" );
+        res.removeHeader( "X-Powered-By" );
 
-  //       Object.keys( _headers ).forEach(function(key, index) {
-  // debugLog( key, this[key] );
-  //           res.setHeader( key, this[key] );
-  //         }, _sanitizeHeaders( _headers )
-  //       );
-
-        // res.set( _headers );
-
+        /// Set the requested web site headers.
+        let _headers = await responseHTTP.headers();
+        let _headersFixed = {};
+        for ( let [key, value] of Object.entries( _headers ) ) {
+          _headersFixed[ key.replace(/\b\w/g, l => l.toUpperCase()) ] = value.replace(/\r?\n|\r/g, '');
+          res.setHeader( key.replace(/\b\w/g, l => l.toUpperCase()), value.replace(/\r?\n|\r/g, '') );
+        }
+        res.removeHeader( 'Content-Encoding' ); // "Content-Encoding: gzip" causes a blank page in the browser.
+        // console.log( 'Headers Original', _headers );
+        console.log( 'Headers Sanitized', _headersFixed );
         let _html = await page.content();
         res.send( _html );
         return;
