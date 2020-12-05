@@ -22,7 +22,7 @@ var multer = require('multer');
 var upload = multer();
 
 var routerIndex = require( './routes/index' );
-var routerWWW   = require( './routes/www' );
+var routerWWW   = require( './routes/www/www.js' );
 // var usersRouter = require('./routes/users'); // @deprecated
 
 var app = express();

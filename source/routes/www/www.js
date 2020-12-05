@@ -7,7 +7,16 @@ const path = require('path');
 const hash = require( 'object-hash' ); // @see https://www.npmjs.com/package/object-hash
 const fse = require( 'fs-extra' );
 const cacheLifespan = 86400;
-const Debug = require( '../utility/debug.js' );
+const Debug = require( '../../utility/debug.js' );
+
+const Request_json  = require( './request/Request_json' );
+const Request_debug = require( './request/Request_debug' );
+const Request_html  = require( './request/Request_html' );
+const Request_mhtml  = require( './request/Request_mhtml' );
+const Request_pdf   = require( './request/Request_pdf' );
+const Request_jpg   = require( './request/Request_jpg' );
+const Request_png   = require( './request/Request_png' );
+const Request_gif   = require( './request/Request_gif' );
 
 let browserWSEndpoint;
 /**
@@ -350,118 +359,20 @@ function _handleRequest( req, res, next ) {
     }
     async function _processRequest( url, page, req, res, responseHTTP, _type ) {
 
-      if ( [ 'debug' ].includes( _type ) ) {
-        req.debug.log( 'HTTP Status Code:', await responseHTTP.status() );
-        req.debug.log( 'HTTP Headers:', await responseHTTP.headers() );
-        res.locals.debugOutput = req.debug.entries;
-        res.render( 'debug', req.app.get( 'config' ) );
-        return;
+      let _factory = {
+        'debug':  Request_debug,
+        'json':   Request_json,
+        'html':   Request_html,   'htm': Request_html,
+        'mhtml':  Request_mhtml,
+        'pdf':    Request_pdf,
+        'jpg':    Request_jpg,    'jpeg': Request_jpg,
+        'png':    Request_png,
+        'gif':    Request_gif,
       }
+      _type = Object.keys( _factory ).includes( _type ) ? _type : 'json';
+      let _request = await _factory[ _type ].instantiate( url, page, req, res, responseHTTP );
+      await _request.do();
 
-      if ( ! _type || [ 'json' ].includes( _type ) ) {
-        res.setHeader( 'Content-Type', 'application/json' );
-        res.json( {
-          'url': await responseHTTP.url(),
-          'query': req.query,
-          'resourceType': await responseHTTP.request().resourceType(),
-          'contentType': responseHTTP.contentType ? responseHTTP.contentType : await responseHTTP.headers()[ 'content-type' ], // same as headers[ 'Content-Type' ];
-          'status': await responseHTTP.status(),
-          'headers': await responseHTTP.headers(),
-          'body': await responseHTTP.text(),
-        } );
-        return;
-      }
-
-      if ( [ 'htm', 'html' ].includes( _type ) ) {
-
-        // Transfer response headers
-        /// Remove default ones.
-        res.removeHeader("set-cookie" );
-        res.removeHeader( "Set-Cookie" );
-        res.removeHeader( "Connection" );
-        res.removeHeader( "Content-Length" );
-        res.removeHeader( "Content-Type" );
-        res.removeHeader( "Date" );
-        res.removeHeader( "ETag" );
-        res.removeHeader( "Keep-Alive" );
-        res.removeHeader( "X-DNS-Prefetch-Control" );
-        res.removeHeader( "X-Powered-By" );
-
-        /// Set the requested web site headers.
-        let _headers = await responseHTTP.headers();
-        let _headersFixed = {};
-        for ( let [key, value] of Object.entries( _headers ) ) {
-          _headersFixed[ key.replace(/\b\w/g, l => l.toUpperCase()) ] = value.replace(/\r?\n|\r/g, '');
-          res.setHeader( key.replace(/\b\w/g, l => l.toUpperCase()), value.replace(/\r?\n|\r/g, '') );
-        }
-        res.removeHeader( 'Content-Encoding' ); // "Content-Encoding: gzip" causes a blank page in the browser.
-        // console.log( 'Headers Original', _headers );
-        console.log( 'Headers Sanitized', _headersFixed );
-        let _html = await page.content();
-        res.send( _html );
-        return;
-      }
-
-      if ( [ 'mhtml' ].includes( _type ) ) {
-        // Save the HTML document @see https://github.com/puppeteer/puppeteer/issues/3575#issuecomment-447258318
-        const session = await page.target().createCDPSession();
-        await session.send( 'Page.enable' );
-        const {data} = await session.send( 'Page.captureSnapshot' );
-        let _hostName = urlModule.parse( url ).hostname;
-        res.setHeader( 'Content-Type', 'message/rfc822' );
-        res.setHeader('Content-Disposition','attachment;filename="' + _hostName + '.mhtml"' );
-        res.setHeader( 'Content-Length', data.length );
-        res.send( data );
-        return;
-      }
-
-      // Get scroll width and height of the rendered page and set viewport
-      let _bodyWidth  = req.query.vpw || await page.evaluate( () => document.body.scrollWidth );
-      let _bodyHeight = req.query.vph || await page.evaluate( () => document.body.scrollHeight );
-      req.debug.log( 'viewport:', _bodyWidth, _bodyHeight, 'document body: ', await page.evaluate( () => document.body.scrollWidth ), await page.evaluate( () => document.body.scrollHeight ) );
-      await page.setViewport({ width: _bodyWidth, height: _bodyHeight });
-
-      if ( [ 'jpg', 'jpeg', 'png', 'gif' ].includes( _type ) ) {
-        _type = 'jpg' === _type ? 'jpeg' : _type;
-        let _getScreenShotOptions = function( req, bodyWidth, bodyHeight ) {
-          if ( ! ( req.query.ssw || req.query.ssh || req.query.ssx || req.query.ssy ) ) {
-            return {
-              'fullPage': true
-            };
-          }
-          let _ssx  = req.query.ssx;
-          let _ssy  = req.query.ssy;
-          let _maxW = bodyWidth - _ssx;
-          let _maxH = bodyHeight - _ssy;
-          let _ssw  = req.query.ssw || _maxW;
-          _ssw = Math.min( _ssw, _maxW );
-          let _ssh  = req.query.ssh || _maxH;
-          _ssh = Math.min( _ssh, _maxH );
-          req.debug.log( 'screenshot height calc', _ssh, _maxH, 'body height', bodyHeight, 'y offset', _ssy, 'document height' );
-          req.debug.log( 'screenshot dimension', _ssx, _ssy, _ssw, _ssh );
-          return {
-            clip: {
-              x: _ssx,
-              y: _ssy,
-              width: _ssw,
-              height: _ssh,
-            }
-          };
-        };
-        let _img = await page.screenshot( _getScreenShotOptions( req, _bodyWidth, _bodyHeight ) );
-        res.writeHead( 200, { 'Content-Type': 'image/' + _type } );
-        res.end( _img, 'binary' );
-        return;
-      }
-
-      if ( ['pdf'].includes( _type ) ) {
-        //await page.pdf({ path: 'hn.pdf', format: 'A4' });
-        let _pdf = await page.pdf({
-          format: 'A4'
-        });
-        res.writeHead( 200, { 'Content-Type': 'application/pdf' } );
-        res.end( _pdf, 'binary' );
-      }
     }
 
   /**
