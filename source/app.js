@@ -30,6 +30,9 @@ app.use(compression({}));
 
 // Custom Data
 var projectData = {
+  'system': {
+    'node.js': process.version,
+  },
   'project': {
     'name' : 'Web Page Dumper',
     'author': 'Michael Uno',
@@ -96,6 +99,7 @@ app.use(express.static('public'));
 
 app.use( '/', routerIndex );
 app.use( '/www', routerWWW );
+app.use( '/nodejsinfo', require( './routes/nodejsinfo' ) );
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

@@ -1,0 +1,9 @@
+extends layout/layout
+
+block header
+  include ./layout/header.pug
+  link(rel='stylesheet', href='/stylesheets/nodejs-info.css')
+
+block content
+  div.m-5!= nodeinfo
+block footer

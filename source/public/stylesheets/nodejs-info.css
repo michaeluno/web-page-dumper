@@ -1,0 +1,9 @@
+table tr > td,
+table tr > th
+{
+  width: auto;
+  word-break: break-word;
+}
+table tr > td:first-child {
+  width: 32%;
+}
