@@ -1,9 +1,15 @@
 extends index
 
 block content-main
-  h1.title Debug
-  p.subtitle Debug Log
-  pre
+  h1.title.is-2 Debug
+  h2.title.is-3 System Info
+  pre.mb-4
+    code
+      ul
+        each value, key in systemInfo
+          li= key + ': ' + value
+  h2.title.is-3 Request Log
+  pre.mb-4
     code
       ul
         each logItem in debugOutput
