@@ -351,7 +351,8 @@ function _handleRequest( req, res, next ) {
     async function _processRequest( url, page, req, res, responseHTTP, _type ) {
 
       if ( [ 'debug' ].includes( _type ) ) {
-        req.debug.log( 'headers:', await responseHTTP.headers() );
+        req.debug.log( 'HTTP Status Code:', await responseHTTP.status() );
+        req.debug.log( 'HTTP Headers:', await responseHTTP.headers() );
         res.locals.debugOutput = req.debug.entries;
         res.render( 'debug', req.app.get( 'config' ) );
         return;
@@ -360,12 +361,12 @@ function _handleRequest( req, res, next ) {
       if ( ! _type || [ 'json' ].includes( _type ) ) {
         res.setHeader( 'Content-Type', 'application/json' );
         res.json( {
-          'url': responseHTTP.url(),
+          'url': await responseHTTP.url(),
           'query': req.query,
-          'resourceType': responseHTTP.request().resourceType(),
-          'contentType': responseHTTP.contentType ? responseHTTP.contentType : responseHTTP.headers()[ 'content-type' ], // same as headers[ 'Content-Type' ];
-          'status': responseHTTP.status(),
-          'headers': responseHTTP.headers(),
+          'resourceType': await responseHTTP.request().resourceType(),
+          'contentType': responseHTTP.contentType ? responseHTTP.contentType : await responseHTTP.headers()[ 'content-type' ], // same as headers[ 'Content-Type' ];
+          'status': await responseHTTP.status(),
+          'headers': await responseHTTP.headers(),
           'body': await responseHTTP.text(),
         } );
         return;
