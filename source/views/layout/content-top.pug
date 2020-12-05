@@ -1,6 +1,44 @@
 section.hero.is-dark
-  div.hero-body.hero-head
+  div.hero-body.hero-head.pb-5
     div.container
       h1.title
-        a.has-text-white(href=homeURL)= project.name
+        a.has-text-white(href=urlHome)
+          span.icon
+            i.fas.fa-globe-americas
+          span.ml-4= project.name
       p= package.description
+  nav.navbar( role="navigation" aria-label="main navigation" )
+    div.navbar-brand
+      a.navbar-item( href=urlHome )
+        span.icon.mr-1
+          i.fas.fa-home
+        | Home
+        //<img src="https://bulma.io/images/bulma-logo.png" width="112" height="28">
+
+      //<a role="button" class="navbar-burger burger" aria-label="menu" aria-expanded="false" data-target="navbarBasicExample">
+      //  <span aria-hidden="true"></span>
+      //  <span aria-hidden="true"></span>
+      //  <span aria-hidden="true"></span>
+      //</a>
+
+    div.navbar-menu#navbarBasicExample
+      div.navbar-start
+        a.navbar-item( href=urlUsage )
+          span.icon.mr-1
+            i.fas.fa-file-alt
+          | Usage
+      //  div.navbar-item.has-dropdown.is-hoverable
+      //    a.navbar-link More
+      //    div.navbar-dropdown
+      //      a.navbar-item About
+      //      a.navbar-item Jobs
+      //      a.navbar-item Contact
+      //      hr.navbar-divider
+      //      a.navbar-item Report an issue
+      div.navbar-end
+        div.navbar-item
+          div.buttons
+            //a.button.is-primary
+            //  strong GitHub
+            a.button.is-light
+              | GitHub
