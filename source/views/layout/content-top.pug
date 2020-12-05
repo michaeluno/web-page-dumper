@@ -1,5 +1,6 @@
 section.hero.is-dark
   div.hero-body.hero-head
     div.container
-      h1.title= project.name
-      h2.subtitle= package.description
+      h1.title
+        a.has-text-white(href=homeURL)= project.name
+      p= package.description

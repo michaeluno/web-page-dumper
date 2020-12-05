@@ -12,7 +12,7 @@ router.get('/', function(req, res, next ) {
   $( 'table' ).addClass( 'table is-striped is-bordered is-hoverable is-fullwidth' );
   $( 'h1' ).addClass( 'title' );
   $( 'h2' ).addClass( 'subtitle' );
-  res.locals.title     = 'Node.js Info - ' + _config.project.name;
+  res.locals.title     = 'Node.js Info - ' + res.locals.title;
   res.locals.nodeinfo  = $.html();
   res.render( 'nodejsinfo', _config );
 

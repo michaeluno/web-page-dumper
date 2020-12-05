@@ -67,7 +67,6 @@ if ( ! fs.existsSync( tempDirPathCache ) ){
 }
 const tempDirPathUserData = tempDirPath + path.sep + 'user-data' + path.sep + username.sync();
 const tempDirPathUserDataByDay = tempDirPathUserData + path.sep + getDate();
-console.log( 'user data dir path:', tempDirPathUserDataByDay );
 app.set( 'tempDirPathUserDataByDay', tempDirPathUserDataByDay );
 if ( ! fs.existsSync( tempDirPathUserDataByDay ) ){
     fs.mkdirSync( tempDirPathUserDataByDay, { recursive: true } );
@@ -96,7 +95,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(upload.array());
 app.use(express.static('public'));
 
-
+app.use( '*', require( './routes/any' ) );
 app.use( '/', routerIndex );
 app.use( '/www', routerWWW );
 app.use( '/nodejsinfo', require( './routes/nodejsinfo' ) );
