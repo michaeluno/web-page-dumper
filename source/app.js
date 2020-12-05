@@ -6,6 +6,9 @@ var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 var compression = require( 'compression' );
 
+const username = require( 'username' );
+const getDate  = require( './utility/getDate' );
+
 // Additional dependencies
 
 const tempDirectory = require('temp-dir');
@@ -47,17 +50,22 @@ var projectData = {
 app.set( 'config', projectData );
 
 /// Temporary directories
-var tempDirPath = tempDirectory + path.sep + 'web-page-dumper';
+const tempDirPath = tempDirectory + path.sep + 'web-page-dumper';
 app.set( 'tempDirPath', tempDirPath );
 if ( ! fs.existsSync( tempDirPath ) ){
     fs.mkdirSync( tempDirPath, { recursive: true } );
 }
-var tempDirPathCache = tempDirPath + path.sep + 'caches';
+const tempDirPathCache = tempDirPath + path.sep + 'caches';
 app.set( 'tempDirPathCache', tempDirPathCache );
 if ( ! fs.existsSync( tempDirPathCache ) ){
     fs.mkdirSync( tempDirPathCache, { recursive: true } );
 }
-
+const tempDirPathUserDataByDay = tempDirPath + path.sep + 'user-data' + path.sep + username.sync() + path.sep + getDate();
+console.log( 'user data dir path:', tempDirPathUserDataByDay );
+app.set( 'tempDirPathUserDataByDay', tempDirPathUserDataByDay );
+if ( ! fs.existsSync( tempDirPathUserDataByDay ) ){
+    fs.mkdirSync( tempDirPathUserDataByDay, { recursive: true } );
+}
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));

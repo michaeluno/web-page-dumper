@@ -6,7 +6,6 @@ const fs = require("fs");
 const path = require('path');
 const hash = require( 'object-hash' ); // @see https://www.npmjs.com/package/object-hash
 const fse = require( 'fs-extra' );
-const username = require( 'username' );
 const cacheLifespan = 86400;
 const Debug = require( '../utility/debug.js' );
 
@@ -150,7 +149,7 @@ function _handleRequest( req, res, next ) {
 
     async function _getBrowser( browserWSEndpoint, req ) {
 
-      let _userDataDirPath = req.app.get( 'tempDirPath' ) + '/user-data/' + await username();
+      let _pathUserDataDir = req.app.get( 'tempDirPathUserDataByDay' );
 
       try {
 
@@ -160,7 +159,7 @@ function _handleRequest( req, res, next ) {
 
         browserWSEndpoint = browserWSEndpoint.includes( '--user-data-dir=' )
           ? browserWSEndpoint
-          : browserWSEndpoint + '?--user-data-dir="' + _userDataDirPath + '"'; // @see https://docs.browserless.io/blog/2019/05/03/improving-puppeteer-performance.html
+          : browserWSEndpoint + '?--user-data-dir="' + _pathUserDataDir + '"'; // @see https://docs.browserless.io/blog/2019/05/03/improving-puppeteer-performance.html
         req.debug.log( 'browser ws endpoint:', browserWSEndpoint );
         return await puppeteer.connect({browserWSEndpoint: browserWSEndpoint } );
 
@@ -169,11 +168,11 @@ function _handleRequest( req, res, next ) {
         req.debug.log( 'newly launching browser' );
         return await puppeteer.launch({
           headless: true,
-          userDataDir: _userDataDirPath,
+          userDataDir: _pathUserDataDir,
           args: [
 
             '--start-maximized', // Start in maximized state for screenshots // @see https://github.com/puppeteer/puppeteer/issues/1273#issuecomment-667646971
-            '--disk-cache-dir=' + req.app.get( 'tempDirPath' ) + '/user-data/disk-cache',
+            '--disk-cache-dir=' + _pathUserDataDir + path.sep + 'disk-cache',
 
             '--disable-background-networking',
 
