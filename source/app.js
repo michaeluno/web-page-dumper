@@ -9,6 +9,8 @@ var compression = require( 'compression' );
 const username = require( 'username' );
 const getDate  = require( './utility/getDate' );
 
+const cleanUserData = require( './tasks/cleanUserData' );
+
 // Additional dependencies
 
 const tempDirectory = require('temp-dir');
@@ -60,7 +62,8 @@ app.set( 'tempDirPathCache', tempDirPathCache );
 if ( ! fs.existsSync( tempDirPathCache ) ){
     fs.mkdirSync( tempDirPathCache, { recursive: true } );
 }
-const tempDirPathUserDataByDay = tempDirPath + path.sep + 'user-data' + path.sep + username.sync() + path.sep + getDate();
+const tempDirPathUserData = tempDirPath + path.sep + 'user-data' + path.sep + username.sync();
+const tempDirPathUserDataByDay = tempDirPathUserData + path.sep + getDate();
 console.log( 'user data dir path:', tempDirPathUserDataByDay );
 app.set( 'tempDirPathUserDataByDay', tempDirPathUserDataByDay );
 if ( ! fs.existsSync( tempDirPathUserDataByDay ) ){
@@ -114,5 +117,8 @@ app.use(function(err, req, res, next) {
   res.render( 'error', req.app.get( 'config' ) );
 
 });
+
+// Periodical routines.
+cleanUserData( tempDirPathUserData );
 
 module.exports = app;

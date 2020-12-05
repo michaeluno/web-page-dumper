@@ -1,11 +1,7 @@
 # Todo
 
 ## Minor
-- Fix an error when accessing `chrome://settings/`.
-- Delete expired cache files. 
-- Add an option to delete cookies.
 - Add an option to set proxies.
-- Find a way to transfer HTTP header for the `html`/`htm` output.
 
 ## Major
 - Add the ability to chain requests -> click on element.
