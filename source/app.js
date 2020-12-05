@@ -99,6 +99,7 @@ app.use( '*', require( './routes/any' ) );
 app.use( '/', routerIndex );
 app.use( '/www', routerWWW );
 app.use( '/nodejsinfo', require( './routes/nodejsinfo' ) );
+app.use( '/usage', require( './routes/usage' ) );
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
