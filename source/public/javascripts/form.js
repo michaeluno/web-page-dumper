@@ -3,6 +3,7 @@ $(function() {
   // Advanced options section
   $( '.divider' ).on( 'click', function() {
     $( this ).next().toggle( 400 );
+    $( this ).find( 'i' ).toggleClass( 'fa-caret-up' );
   });
 
   // For screenshot outputs

@@ -27,7 +27,10 @@ form( method="get" name="main" action="/www/" )
       label.radio
         input( type="radio" name="output" value="gif" )
         span.ml-1 GIF
-  div.divider= labels.advanced
+  div.divider
+    | #{labels.advanced}
+    span.icon
+      i.fas.fa-caret-down
   div.advanced.hidden
     div.field.hidden.clip
       label.label.has-text-weight-medium= labels.clip
