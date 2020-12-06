@@ -7,6 +7,7 @@ const cheerio    = require('cheerio')
 
 router.get('/', function(req, res, next ) {
 
+  res.locals.title = 'Usage - ' + res.locals.title;
   let _markdownContent = fs.readFileSync( path.resolve( __dirname, '../../README.md' ), 'utf8' ) ;
   let _md      = new MarkdownIt();
   var _html    = _md.render( _markdownContent );
@@ -27,7 +28,10 @@ router.get('/', function(req, res, next ) {
   $( 'h4' ).addClass( 'is-5' );
   $( 'h5' ).addClass( 'is-6' );
   $( 'h6' ).addClass( 'is-7' );
-  $( 'p, pre' ).addClass( 'mb-5' );
+  $( 'div > p, div > pre' ).addClass( 'mb-5' );
+
+  // Add target="_blank"
+  $( 'a' ).attr( 'target', '_blank' );
 
   res.locals.content = $.html();
   res.render( 'usage', req.app.get( 'config' ) );

@@ -64,24 +64,26 @@ function _handleRequest( req, res, next ) {
 
 }
   function _getQueryFormatted( query ) {
-    query.output  = 'undefined' !== typeof query.output && query.output ? query.output.toLowerCase() : '';
-    query.cache   = 'undefined' === typeof query.cache
+    query.output   = 'undefined' !== typeof query.output && query.output ? query.output.toLowerCase() : '';
+    query.cache    = 'undefined' === typeof query.cache
       ? true
       : !! parseInt( query.cache );
     query.cache_duration = 'undefined' === typeof query.cache_duration
         ? cacheLifespan
         : ( parseInt( query.cache_duration ) || cacheLifespan );
-    query.timeout = 'undefined' === typeof query.timeout ? 30000 : parseInt( query.timeout );
-    query.reload  = !! parseInt( query.reload );
-    query.vpw     = parseInt( query.vpw );
-    query.vph     = parseInt( query.vph );
-    query.ssw     = parseInt( query.ssw );
-    query.ssh     = parseInt( query.ssh );
-    query.ssx     = parseInt( query.ssx ) || 0;
-    query.ssy     = parseInt( query.ssy ) || 0;
+    query.timeout  = 'undefined' === typeof query.timeout ? 30000 : parseInt( query.timeout );
+    query.reload   = !! parseInt( query.reload );
+    query.vpw      = parseInt( query.vpw );
+    query.vph      = parseInt( query.vph );
+    query.ssw      = parseInt( query.ssw );
+    query.ssh      = parseInt( query.ssh );
+    query.ssx      = parseInt( query.ssx ) || 0;
+    query.ssy      = parseInt( query.ssy ) || 0;
 
     // query.username
     query.password = 'undefined' === typeof query.password ? '' : query.password;
+
+    query.pdf       = query.pdf || {};
     return query;
   }
   /**

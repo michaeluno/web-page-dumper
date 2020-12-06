@@ -53,6 +53,21 @@ var projectData = {
     'basicAuthentication' : 'Basic Authentication Credentials',
     'userName'            : 'User Name',
     'password'            : 'Password',
+    'pdf'                 : 'PDF',
+    'scale'               : 'Scale',
+    'displayHeaderFooter' : 'Display the header and footer.',
+    'headerTemplate'      : 'Header Template',
+    'footerTemplate'      : 'Footer Template',
+    'printBackground'     : 'Print background graphics.',
+    'landscape'           : 'Landscape',
+    'pageRanges'          : 'Page Ranges',
+    'format'              : 'Format',
+    'dimensions'          : 'Dimensions',
+    'margins'             : 'Margins',
+    'top'                 : 'Top',
+    'right'               : 'Right',
+    'bottom'              : 'Bottom',
+    'left'                : 'Left',
   }
 };
 app.set( 'config', projectData );

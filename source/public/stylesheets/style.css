@@ -20,8 +20,13 @@ body > div {
   font-weight: normal;
 }
 
-/* Override Bulma rules */
-.field .label:not(:last-child) {
-    margin-bottom: .3em;
-    margin-top: 0.1em;
+/* Form Elements */
+input[type=number] {
+  text-align: right;
 }
+
+/* Override Bulma rules */
+/*.field .label:not(:last-child) {*/
+/*    margin-bottom: .3em;*/
+/*    margin-top: 0.1em;*/
+/*}*/

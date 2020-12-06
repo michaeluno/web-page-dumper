@@ -31,7 +31,8 @@ form( method="get" name="main" action="/www/" )
     | #{labels.advanced}
     span.icon
       i.fas.fa-caret-down
-  div.advanced.hidden
+  div.advanced
+    //.hidden
     div.field.hidden.clip
       label.label.has-text-weight-medium= labels.clip
       div.field.has-addons
@@ -78,3 +79,91 @@ form( method="get" name="main" action="/www/" )
         label.checkbox
           input( type="checkbox" name="reload" value=1 )
           span.ml-1 Reload
+    div.field.pdf
+      label.label.has-text-weight-medium= labels.pdf
+      div.container
+        div.columns.mb-0
+          div.field.column.is-one-fifth
+            div.control
+              label.label.is-weight-normal.mr-2
+                | #{labels.scale}
+                input.input.is-info.is-small.mr-2( type="number" name="pdf[scale]" step="0.1" max="2" min="0.1" )
+        div.field
+          div.control
+            label.checkbox
+              input( type="checkbox" name="pdf[displayHeaderFooter]" value=1 )
+              span.ml-1= labels.displayHeaderFooter
+        div.field
+          div.control
+            label.checkbox
+              input( type="checkbox" name="pdf[printBackground]" value=1 )
+              span.ml-1= labels.printBackground
+        div.field
+          div.control
+            label.checkbox
+              input( type="checkbox" name="pdf[landscape]" value=1 )
+              span.ml-1= labels.landscape
+        div.columns.mb-0
+          div.field.column.has-addons
+            div.control
+              label.label.is-weight-normal.mr-2
+                | #{labels.pageRanges}
+                input.input.is-info.is-small.mr-2( type="text" name="pdf[pageRanges]" )
+                span
+                  | e.g. <code>11</code>, <code>1-5</code>, <code>8-10</code>
+        div.field
+          div.control
+            label.label.is-weight-normal= labels.format
+            div.select
+              select( name="pdf[format]" )
+                option( selected )
+                option( value="Letter" ) Letter: 8.5in x 11in
+                option( value="Legal" ) Legal: 8.5in x 14in
+                option( value="Tabloid" ) Tabloid: 11in x 17in
+                option( value="Ledger" ) Ledger: 17in x 11in
+                option( value="A0" ) A0: 33.1in x 46.8in
+                option( value="A1" ) A1: 23.4in x 33.1in
+                option( value="A2" ) A2: 16.54in x 23.4in
+                option( value="A3" ) A3: 11.7in x 16.54in
+                option( value="A4" ) A4: 8.27in x 11.7in
+                option( value="A5" ) A5: 5.83in x 8.27in
+                option( value="A6" ) A6: 4.13in x 5.83in
+        div.field
+          div.field.has-addons
+            label.label.is-weight-normal.mr-2
+              | #{labels.width}
+              input.input.is-info.is-small.mr-2( type="number" name="pdf[width]" )
+            label.label.is-weight-normal.mr-2
+              | #{labels.height}
+              input.input.is-info.is-small( type="number" name="pdf[height]" )
+        div.field
+          label.label.is-weight-normal.mr-2= labels.margins
+          div.field.has-addons
+            label.label.is-weight-normal.mr-2
+              | #{labels.top}
+              input.input.is-info.is-small.mr-2( type="number" name="pdf[margin][top]" )
+            label.label.is-weight-normal.mr-2
+              | #{labels.right}
+              input.input.is-info.is-small( type="number" name="pdf[margin][right]" )
+            label.label.is-weight-normal.mr-2
+              | #{labels.bottom}
+              input.input.is-info.is-small( type="number" name="pdf[margin][bottom]" )
+            label.label.is-weight-normal.mr-2
+              | #{labels.left}
+              input.input.is-info.is-small( type="number" name="pdf[margin][left]" )
+        div.field
+          div.control
+            label
+              | #{labels.headerTemplate}
+              textarea.textarea( name="pdf[headerTemplate]" )
+        div.field
+          div.control
+            label
+              | #{labels.footerTemplate}
+              textarea.textarea( name="pdf[footerTemplate]" )
+      //div.field
+      //  div.control
+      //    label.label.is-weight-normal.mr-2
+      //      | #{labels.height}
+      //      input.input.is-info.is-small( type="number" name="vph" )
+
