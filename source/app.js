@@ -41,15 +41,18 @@ var projectData = {
   },
   'package': require('./package.json'),
   'labels': {
-    'userAgent'     : 'User Agent',
-    'urlPlaceholder': 'Type URL here',
-    'advanced'      : 'Advanced',
-    'proxy'         : 'Proxy',
-    'viewport'      : 'Viewport',
-    'width'         : 'Width',
-    'height'        : 'Height',
-    'clip'          : 'Clip',
-    'position'      : 'Position',
+    'userAgent'           : 'User Agent',
+    'urlPlaceholder'      : 'Type URL here',
+    'advanced'            : 'Advanced',
+    'proxy'               : 'Proxy',
+    'viewport'            : 'Viewport',
+    'width'               : 'Width',
+    'height'              : 'Height',
+    'clip'                : 'Clip',
+    'position'            : 'Position',
+    'basicAuthentication' : 'Basic Authentication Credentials',
+    'userName'            : 'User Name',
+    'password'            : 'Password',
   }
 };
 app.set( 'config', projectData );

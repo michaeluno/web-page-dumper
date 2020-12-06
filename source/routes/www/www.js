@@ -51,6 +51,7 @@ function _handleRequest( req, res, next ) {
   }
 
   req.query = _getQueryFormatted( req.query, req );
+  req.debug.log( 'query', req.query );
 
   (async () => {
     try {
@@ -62,7 +63,7 @@ function _handleRequest( req, res, next ) {
   })();
 
 }
-  function _getQueryFormatted( query, req ) {
+  function _getQueryFormatted( query ) {
     query.output  = 'undefined' !== typeof query.output && query.output ? query.output.toLowerCase() : '';
     query.cache   = 'undefined' === typeof query.cache
       ? true
@@ -78,7 +79,9 @@ function _handleRequest( req, res, next ) {
     query.ssh     = parseInt( query.ssh );
     query.ssx     = parseInt( query.ssx ) || 0;
     query.ssy     = parseInt( query.ssy ) || 0;
-    req.debug.log( 'query', query );
+
+    // query.username
+    query.password = 'undefined' === typeof query.password ? '' : query.password;
     return query;
   }
   /**
@@ -113,6 +116,11 @@ function _handleRequest( req, res, next ) {
 
     // User Agent
     await page.setUserAgent( req.query.user_agent || ( await browser.userAgent() ).replace( 'Headless', '' ) );
+
+    // HTTP Basic Authentication
+    if ( req.query.username ) {
+      await page.authenticate({'username': req.query.username , 'password': req.query.password} );
+    }
 
     // Caching
     // await _disableHTMLResources( page, req, _typeOutput, urlThis );

@@ -74,5 +74,11 @@ Default: `30000`.
 #### (string) user_agent
 Specifies a user agent.
 
+#### (string) username
+For a site that requires a basic authentication, set a user name with this parameter.
+
+#### (string) password
+For a site that requires a basic authentication, set a password with this parameter.
+
 ## License
 MIT
