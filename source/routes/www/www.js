@@ -104,8 +104,12 @@ function _handleRequest( req, res, next ) {
 
     // Basic Authentication
     query.password = 'undefined' === typeof query.password ? '' : query.password;
+    
+    // .launch( { arg: ... } )
+    query.args                = 'undefined' === typeof query.args ? [] : query.args;
 
-    query.pdf       = query.pdf || {};
+    // PDF
+    query.pdf                 = query.pdf || {};
     return query;
   }
   /**
@@ -122,6 +126,7 @@ function _handleRequest( req, res, next ) {
     let _typeOutput = req.query.output;
 
     let browser  = await _getBrowser( browserWSEndpoint, req );
+    browserWSEndpoint = browser.wsEndpoint();
 
     // Incognito mode - deprecated as a new tab cannot be created but it forces to open a new window
     // let context = await browser.createIncognitoBrowserContext();
@@ -180,7 +185,6 @@ function _handleRequest( req, res, next ) {
     const client = await page.target().createCDPSession();
     await client.send('Network.clearBrowserCookies' );
 
-    browserWSEndpoint = browser.wsEndpoint();
     await page.close();
 
     // If after 60 seconds and the browser is not used, close it.
@@ -194,50 +198,66 @@ function _handleRequest( req, res, next ) {
 
   }
 
-    async function _getBrowser( browserWSEndpoint, req ) {
+    async function _getBrowser( thisBrowserWSEndpoint, req ) {
 
       let _pathUserDataDir = req.app.get( 'tempDirPathUserDataByDay' );
 
       try {
 
-        if ( ! browserWSEndpoint ) {
+        if ( ! thisBrowserWSEndpoint ) {
           throw new Error( 'A previous browser instance does not exist.' );
         }
+        
+        thisBrowserWSEndpoint = thisBrowserWSEndpoint.includes( '--user-data-dir=' )
+          ? thisBrowserWSEndpoint
+          : thisBrowserWSEndpoint + '?--user-data-dir="' + _pathUserDataDir + '"'; // @see https://docs.browserless.io/blog/2019/05/03/improving-puppeteer-performance.html
 
-        browserWSEndpoint = browserWSEndpoint.includes( '--user-data-dir=' )
-          ? browserWSEndpoint
-          : browserWSEndpoint + '?--user-data-dir="' + _pathUserDataDir + '"'; // @see https://docs.browserless.io/blog/2019/05/03/improving-puppeteer-performance.html
-        req.debug.log( 'browser ws endpoint:', browserWSEndpoint );
-        return await puppeteer.connect({browserWSEndpoint: browserWSEndpoint } );
+        req.debug.log( 'args', req.query.args, 'length', req.query.args.length );
+
+        let _browser = await puppeteer.connect({browserWSEndpoint: thisBrowserWSEndpoint } );
+
+        if ( req.query.args.length ) {
+          // @todo store previous args and if they are the same, do not close the browser and reuse it.
+          // This is because launching the browser in a too short period of time, it causes an error saying "Unable to move the cache: Access is denied."
+          await _browser.close();
+          browserWSEndpoint = '';
+          throw new Error( 'The args argument is set so launch a new browser.' );
+        }
+        req.debug.log( 'Reusing the existing browser, ws endpoint:', thisBrowserWSEndpoint );
+        return _browser;
 
       } catch (e) {
 
-        req.debug.log( 'newly launching browser' );
+        req.debug.log( 'Newly launching browser.' );
+        let _argsMust = [
+          '--start-maximized', // Start in maximized state for screenshots // @see https://github.com/puppeteer/puppeteer/issues/1273#issuecomment-667646971
+          '--disk-cache-dir=' + _pathUserDataDir + path.sep + 'disk-cache',
+          '--disable-background-networking',
+
+          // To save CPU usage, @see https://stackoverflow.com/a/58589026
+          // '--no-sandbox',
+          // '--disable-setuid-sandbox',
+          // '--disable-dev-shm-usage',
+          // '--disable-accelerated-2d-canvas',
+          // '--no-first-run',
+          // '--no-zygote',
+          // '--disable-gpu'
+
+          // Not working
+          // '--single-process', // <- causes an error in Windows
+          // '--incognito', // <-- doesn't create new tabs in the incognito window
+
+          // For more options @see https://github.com/puppeteer/puppeteer/issues/824#issue-258832025
+        ];
+        req.query.args = req.query.args.filter( element => ! element.includes( "--disk-cache-dir=" ) );
+        req.debug.log( 'req.query.args', req.query.args );
+
+        let _args = [...new Set([ ...req.query.args, ..._argsMust ] ) ];
+        req.debug.log( 'Browser "args"', _args );
         return await puppeteer.launch({
           headless: true,
           userDataDir: _pathUserDataDir,
-          args: [
-
-            '--start-maximized', // Start in maximized state for screenshots // @see https://github.com/puppeteer/puppeteer/issues/1273#issuecomment-667646971
-            '--disk-cache-dir=' + _pathUserDataDir + path.sep + 'disk-cache',
-
-            '--disable-background-networking',
-
-            // To save CPU usage, @see https://stackoverflow.com/a/58589026
-            // '--no-sandbox',
-            // '--disable-setuid-sandbox',
-            // '--disable-dev-shm-usage',
-            // '--disable-accelerated-2d-canvas',
-            // '--no-first-run',
-            // '--no-zygote',
-            // '--disable-gpu'
-
-            // Not working
-            // '--single-process', // <- causes an error in Windows
-            // '--incognito', // <-- doesn't create new tabs in the incognito window
-
-            // For more options @see https://github.com/puppeteer/puppeteer/issues/824#issue-258832025
-          ]
+          args: _args
         });
       }
     }
@@ -343,7 +363,7 @@ function _handleRequest( req, res, next ) {
         try {
           if ( fs.existsSync( _cachePath ) && ! _isCacheExpired( _cachePath, _cacheDuration ) ) {
             let _contentType = fs.existsSync( _cachePathContentType ) ? await fse.readFile( _cachePathContentType, 'utf8' ) : undefined;
-            req.debug.log( 'using cache:', _resourceType, await request.url() );
+            // req.debug.log( 'using cache:', _resourceType, await request.url() );
             request.respond({
                 status: 200,
                 contentType: _contentType,

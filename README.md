@@ -184,6 +184,14 @@ http(s)://{app address}/www/?url=https%3A%2F%2Fgithub.com&output=pdf&pdf[scale]=
 ##### Unsupported Arguments
   - `path` <string> 
 
+#### <array> `args`
+
+The `args` argument for the `puppeteer.launch()` method. For accepted arguments, please see [here](https://peter.sh/experiments/chromium-command-line-switches/).
+ 
+e.g.
+```
+http(s)://{app address}/www/?url=https%3A%2F%2Fgoogle.com%2F&output=jpg&args[]=--lang=en-GB
+```
 
 ## License
 MIT
