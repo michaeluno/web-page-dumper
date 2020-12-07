@@ -11,9 +11,9 @@ module.exports = class Request_Image extends Request_Base {
    */
   async _initialize() {
 
-    this.bodyWidth   = this.req.query.viewport.width  || await this.page.evaluate( () => document.body.scrollWidth );
-    this.bodyHeight  = this.req.query.viewport.height || await this.page.evaluate( () => document.body.scrollHeight );
-    this.req.debug.log( 'Page dimensions:', this.bodyWidth, this.bodyHeight );
+    this.bodyWidth   = await this.page.evaluate( () => document.body.scrollWidth );
+    this.bodyHeight  = await this.page.evaluate( () => document.body.scrollHeight );
+    this.req.debug.log( 'Page document dimensions:', this.bodyWidth, this.bodyHeight );
     await this.page.setViewport( {
       width:  this.bodyWidth,
       height: this.bodyHeight
@@ -25,6 +25,8 @@ module.exports = class Request_Image extends Request_Base {
 
     let _screenshot = this._getScreenShotOptions( this.req, this.bodyWidth, this.bodyHeight );
     this.req.debug.log( 'Screenshot options:', _screenshot );
+
+    await this._autoScroll( this.page );
     let _img = await this.page.screenshot( _screenshot );
     this.res.writeHead( 200, { 'Content-Type': 'image/' + this.type } );
     this.res.end( _img, 'binary' );
@@ -73,5 +75,30 @@ module.exports = class Request_Image extends Request_Base {
       }
       return _screenshot;
     };
+
+  /**
+   * @see https://stackoverflow.com/a/53527984
+   * @param page
+   * @returns {Promise<void>}
+   * @private
+   */
+  async _autoScroll(page){
+    await page.evaluate(async () => {
+      await new Promise((resolve, reject) => {
+        let totalHeight = 0;
+        let distance = 100;
+        let timer = setInterval(() => {
+          let scrollHeight = document.body.scrollHeight;
+          window.scrollBy(0, distance);
+          totalHeight += distance;
+
+          if(totalHeight >= scrollHeight){
+              clearInterval(timer);
+              resolve();
+          }
+        }, 100);
+      });
+    });
+  }
 
 }
