@@ -7,22 +7,25 @@ Access the app address following the path `/www/` with query parameters of the G
 
 e.g.
 ```
-http(s)://{app address}/www/?url=https%3A%2F%2Fexample.com
+http(s)://{app address}/www/?url=https%3A%2F%2Fexample.org
 ```
 
 ### Query Parameters
 
 Only the `url` parameter is required. The rest is optional. 
 
-For boolean values, use `1` or `0' instead of `true` or `false`.
+For boolean values, use `1` or `0` instead of `true` or `false`.
 
 #### <required, string> `url`
-A URL-encoded URL to fetch. 
+A _URL-encoded_ URL to fetch. 
+
+> Note: It is important to pass an URL-encoded value especially when the URL includes query parameters not to mix with the current parameters and the requested URL parameters.   
 
 e.g.
 ```
-http(s)://{app address}/www/?url=https%3A%2F%2Fgithub.com
+http(s)://{app address}/www/?url=https%3A%2F%2Fgithub.com%2F
 ```
+
 
 #### <string> `output`
 The output type. Accepts the following values:
@@ -34,10 +37,9 @@ The output type. Accepts the following values:
   - `status` - <integer> the HTTP status code as a number such as `200` and `404`.
   - `heaers` - <array> the HTTP header.
   - `body`   - <string> the HTTP body, usually an HTML document.
-  
 - `html`, `htm` - outputs the site source as `html` or `htm`. HTTP header will be omitted.
 - `mhtml` - outputs the site source as `mhtml`.
-- `png`, `jpg`, `jpeg`, `gif` - outputs a screenthot image of the site
+- `png`, `jpg`, `jpeg` - outputs a screenthot image of the site
 - `pdf`
 
 #### <array> `viewport`
@@ -46,6 +48,7 @@ Sets how the browser should be viewed.
 
 e.g.
 ```
+http(s)://{app address}/www/?url=https%3A%2F%2Fwww.google.com&output=jpg&set_viewport=1&viewport[width]=800&viewpor[height]=1200&viewport[deviceScaleFactor]=5
 ```
  
 Accepts the following arguments, same as Puppeteer's `page.setViewport()` method arguments.
@@ -64,55 +67,71 @@ Does not accept the following arguments.
 
 - `hasTouch`
 
-#### <integer> vpw
-Sets a browser viewport width. Use this to simulate a browser. 
+#### <array> `screenshot`
 
-#### <integer> vph
-Sets a browser viewport height. Use this to simulate a browser.
- 
-#### <integer> ssw
-Sets a width of the screenshot when the `type` argument is either of `png`, `jpg`, `jpeg`, or `gif`.  
- 
-#### <integer> ssh 
-Sets a height of the screenshot when the `type` argument is either of `png`, `jpg`, `jpeg`, or `gif`.
+Sets screenshot options. This takes effect when the `output` parameter is either of `jpg`, `jpeg`, `png`, or `gif`. 
 
-#### <integer> ssx
-Sets an X coordinate offset for a screenshot.
+e.g. 
+```
+http(s)://{app address}/www/?url=https%3A%2F%2Fgithub.com%2F&output=jpg&screenshot[quality]=10&screenshot[omitBackground]=1
+```
+```
+http(s)://{app address}/www/?url=https%3A%2F%2Fgoogle.com%2F&output=png&screenshot[clip][x]=50&screenshot[clip][y]=80&screenshot[clip][width]=700&screenshot[clip][height]=200
+```
 
-#### <integer> ssy 
-Sets an Y coordinate offset for a screenshot. 
+Accepts the following arguments, same as Puppeteer's `page.setViewport()` method arguments.
+  
+>  - `quality` <number> The quality of the image, between 0-100. Not applicable to `png` images.
+>  - `clip` <Object> An object which specifies clipping region of the page. Should have the following fields:
+>    - `x` <number> x-coordinate of top-left corner of clip area
+>    - `y` <number> y-coordinate of top-left corner of clip area
+>    - `width` <number> width of clipping area
+>    - `height` <number> height of clipping area
+>  - `omitBackground` <boolean> Hides default white background and allows capturing screenshots with transparency. Defaults to `false`.
+> 
+> -- [Puppeteer API Tip-Of-Tree page.screenshot([options])][2]
 
-#### <integer> reload  
+[2]: https://github.com/puppeteer/puppeteer/blob/main/docs/api.md#pagescreenshotoptions
+
+Does not accept the following arguments.
+
+- `path`
+- `encoding`
+- `type`
+- `fullPage` - when the `clip` argument is not set, the full page screenshot will be taken.  
+
+#### <integer> `reload`  
 Specifies whether to reload the internal browser. This is useful for cookie dependant web sites.  
 
 Accepts `1` or `0`.
 
-#### <integer> cache
+#### <integer> `cache`
 Decides whether to use browser caches.
 
 Accepts `1` or `0`.
 
-#### <integer> timeout
+#### <integer> `timeout`
 The browser connection timeout in milliseconds.
 
 Default: `30000`.
 
-#### <string> user_agent
+#### <string> `user_agent`
 Specifies a user agent.
 
-#### <string> username
+#### <string> `username`
 For a site that requires a basic authentication, set a user name with this parameter.
 
-#### <string> password
+#### <string> `password`
 For a site that requires a basic authentication, set a password with this parameter.
 
-#### <array> pdf
+#### <array> `pdf`
 When the output type is set to `pdf`, the following sub-arguments of the `pdf` parameter is accepted. 
 
 For more details please see [puppeteer's pdf options](https://github.com/puppeteer/puppeteer/blob/main/docs/api.md#pagepdfoptions) as the arguments are the same except some unsupported arguments. 
 
 e.g.
 ```
+http(s)://{app address}/www/?url=https%3A%2F%2Fgithub.com&output=pdf&pdf[scale]=0.5&pdf[printBackground]=1&pdf[pageRanges]=1-3&pdf[format]=Legal
 ```
 
 ##### Accepted Arguments  
@@ -158,9 +177,9 @@ e.g.
 > - `cm` - centimeter
 > - `mm` - millimeter
 >
-> -- [Puppeteer API Tip-Of-Tree page.pdf([options])][2]
+> -- [Puppeteer API Tip-Of-Tree page.pdf([options])][3]
 
-[2]: https://github.com/puppeteer/puppeteer/blob/main/docs/api.md#pagepdfoptions
+[3]: https://github.com/puppeteer/puppeteer/blob/main/docs/api.md#pagepdfoptions
 
 ##### Unsupported Arguments
   - `path` <string> 

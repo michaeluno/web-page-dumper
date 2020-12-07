@@ -12,11 +12,10 @@ const Debug = require( '../../utility/debug.js' );
 const Request_json  = require( './request/Request_json' );
 const Request_debug = require( './request/Request_debug' );
 const Request_html  = require( './request/Request_html' );
-const Request_mhtml  = require( './request/Request_mhtml' );
+const Request_mhtml = require( './request/Request_mhtml' );
 const Request_pdf   = require( './request/Request_pdf' );
-const Request_jpg   = require( './request/Request_jpg' );
+const Request_jpeg  = require( './request/Request_jpeg' );
 const Request_png   = require( './request/Request_png' );
-const Request_gif   = require( './request/Request_gif' );
 
 let browserWSEndpoint;
 /**
@@ -64,15 +63,24 @@ function _handleRequest( req, res, next ) {
 
 }
   function _getQueryFormatted( query ) {
+
+    // Required
     query.output   = 'undefined' !== typeof query.output && query.output ? query.output.toLowerCase() : '';
+
+    // Cache
     query.cache    = 'undefined' === typeof query.cache
       ? true
       : !! parseInt( query.cache );
-    query.cache_duration      = 'undefined' === typeof query.cache_duration
-        ? cacheLifespan
-        : ( parseInt( query.cache_duration ) || cacheLifespan );
+
+    // @deprecated
+    // query.cache_duration      = 'undefined' === typeof query.cache_duration
+    //     ? cacheLifespan
+    //     : ( parseInt( query.cache_duration ) || cacheLifespan );
+
     query.timeout             = 'undefined' === typeof query.timeout ? 30000 : parseInt( query.timeout );
     query.reload              = !! parseInt( query.reload );
+
+    // Viewport
     query.viewport            = 'undefined' === typeof query.viewport ? {} : query.viewport;
     if ( query.viewport.width ) {
       query.viewport.width      = parseInt( query.viewport.width );
@@ -90,12 +98,11 @@ function _handleRequest( req, res, next ) {
       query.viewport.isLandscape = Boolean( query.viewport.isLandscape );
     }
 
-    query.ssw                 = parseInt( query.ssw );
-    query.ssh                 = parseInt( query.ssh );
-    query.ssx                 = parseInt( query.ssx ) || 0;
-    query.ssy                 = parseInt( query.ssy ) || 0;
+    // Screenshot
+    query.screenshot          = 'undefined' === typeof query.screenshot ? {} : query.screenshot;
+    query.screenshot.clip     = 'undefined' === typeof query.screenshot.clip ? {} : query.screenshot.clip;
 
-    // query.username
+    // Basic Authentication
     query.password = 'undefined' === typeof query.password ? '' : query.password;
 
     query.pdf       = query.pdf || {};
@@ -250,7 +257,7 @@ function _handleRequest( req, res, next ) {
 
       await page.setRequestInterception( true );
 
-      let _imageExtensions = [ 'pdf', 'jpg', 'jpeg', 'png', 'gif' ];
+      let _imageExtensions = [ 'pdf', 'jpg', 'jpeg', 'png' ];
       if ( _imageExtensions.includes( typeOutput ) ) {
         await page.setRequestInterception( false );
         return;
@@ -396,9 +403,8 @@ function _handleRequest( req, res, next ) {
         'html':   Request_html,   'htm': Request_html,
         'mhtml':  Request_mhtml,
         'pdf':    Request_pdf,
-        'jpg':    Request_jpg,    'jpeg': Request_jpg,
+        'jpg':    Request_jpeg,   'jpeg': Request_jpeg,
         'png':    Request_png,
-        'gif':    Request_gif,
       }
       _type = Object.keys( _factory ).includes( _type ) ? _type : 'json';
       let _request = await _factory[ _type ].instantiate( url, page, req, res, responseHTTP );

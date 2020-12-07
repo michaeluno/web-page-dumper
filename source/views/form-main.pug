@@ -7,56 +7,36 @@ form( method="get" name="main" action="/www/" )
   div.field
     div.control.output
       label.radio
-        input( type="radio" name="output" value="json" checked )
+        input( type="radio" name="output" value="json" data-onchange="" checked )
         span.ml-1 JSON
       label.radio
-        input( type="radio" name="output" value="html" )
+        input( type="radio" name="output" value="html" data-onchange="" )
         span.ml-1 HTML
       label.radio
-        input( type="radio" name="output" value="mhtml" )
+        input( type="radio" name="output" value="mhtml" data-onchange="" )
         span.ml-1 MHTML
       label.radio
-        input( type="radio" name="output" value="pdf" )
+        input( type="radio" name="output" value="pdf" data-onchange=".pdf" )
         span.ml-1 PDF
       label.radio
-        input( type="radio" name="output" value="jpg" )
+        input( type="radio" name="output" value="jpg" data-onchange=".quality, .screenshot" )
         span.ml-1 JPEG
       label.radio
-        input( type="radio" name="output" value="png" )
+        input( type="radio" name="output" value="png" data-onchange=".screenshot" )
         span.ml-1 PNG
-      label.radio
-        input( type="radio" name="output" value="gif" )
-        span.ml-1 GIF
   div.divider
     | #{labels.advanced}
     span.icon
       i.fas.fa-caret-down
-  div.advanced
-    //.hidden
-    div.field.hidden.clip
-      label.label.has-text-weight-medium= labels.clip
-      div.field.has-addons
-        label.label.is-weight-normal.mr-2
-          | X
-          input.input.is-info.is-small.mr-2( type="number" name="ssx" )
-        label.label.is-weight-normal.mr-2
-          | Y
-          input.input.is-info.is-small.mr-2( type="number" name="ssy" )
-        label.label.is-weight-normal.mr-2
-          | #{labels.width}
-          input.input.is-info.is-small.mr-2( type="number" name="ssw" )
-        label.label.is-weight-normal.mr-2
-          | #{labels.height}
-          input.input.is-info.is-small( type="number" name="ssh" )
+  div.advanced.hidden
     div.field
       div.control
-        label.checkbox.label.has-text-weight-medium
-          input.mr-2( type="checkbox" name="set_viewport" data-onchange=1 data-selector='.viewport' value=1 )
+        label.checkbox.label.has-text-weight-semibold
+          input.mr-2( type="checkbox" name="set_viewport" data-onchange=".viewport" value=1 )
           | #{labels.viewport}
     div.container.viewport.hidden
       div.columns.m-0
         div.field
-          //label.label.has-text-weight-medium= labels.viewport
           div.field.has-addons
             label.label.is-weight-normal.mr-2
               | #{labels.width}
@@ -80,17 +60,16 @@ form( method="get" name="main" action="/www/" )
           label.checkbox
             input( type="checkbox" name="viewport[isLandscape]" value=1 )
             span.ml-1= labels.landscape
-
     div.field
-      label.label.has-text-weight-medium= labels.userAgent
+      label.label.has-text-weight-semibold= labels.userAgent
       div.control
         input.input.is-info.is-small( type="text" name="user_agent" placeholder=labels.userAgent )
     //div.field
-    //  label.label.has-text-weight-medium= labels.proxy
+    //  label.label.has-text-weight-semibold= labels.proxy
     //  div.control
     //    input.input.is-info.is-small( type="url" name="proxy" placeholder=labels.proxy )
     div.field
-      label.label.has-text-weight-medium= labels.basicAuthentication
+      label.label.has-text-weight-semibold= labels.basicAuthentication
       div.field.has-addons
         label.label.is-weight-normal.mr-2
           | #{labels.userName}
@@ -103,8 +82,37 @@ form( method="get" name="main" action="/www/" )
         label.checkbox
           input( type="checkbox" name="reload" value=1 )
           span.ml-1= labels.reload
+    div.container.screenshot.hidden
+      label.label.has-text-weight-semibold= labels.screenshot
+      div.columns.mb-0.quality
+        div.field.column.is-one-fifth
+          div.control
+            label.label.is-weight-normal.mr-2
+              | #{labels.quality}
+              input.input.is-info.is-small.mr-2( type="number" name="screenshot[quality]" step="1" max="100" min="0" )
+      div.columns.m-0
+        div.field
+          label.label.has-text-weight-normal= labels.clip
+          div.field.has-addons
+            label.label.mr-2.has-text-weight-light
+              | X
+              input.input.is-info.is-small.mr-2( type="number" name="screenshot[clip][x]" )
+            label.label.mr-2.has-text-weight-light
+              | Y
+              input.input.is-info.is-small.mr-2( type="number" name="screenshot[clip][y]" )
+            label.label.mr-2.has-text-weight-light
+              | #{labels.width}
+              input.input.is-info.is-small.mr-2( type="number" name="screenshot[clip][width]" )
+            label.label.mr-2.has-text-weight-light
+              | #{labels.height}
+              input.input.is-info.is-small( type="number" name="screenshot[clip][height]" )
+      div.field
+        div.control
+          label.checkbox
+            input( type="checkbox" name="screenshot[omitBackground]" value=1 )
+            span.ml-1= labels.omitBackground
     div.field.pdf.hidden
-      label.label.has-text-weight-medium= labels.pdf
+      label.label.has-text-weight-semibold= labels.pdf
       div.container
         div.columns.mb-0
           div.field.column.is-one-fifth
@@ -163,16 +171,16 @@ form( method="get" name="main" action="/www/" )
         div.field
           label.label.is-weight-normal.mr-2= labels.margins
           div.field.has-addons
-            label.label.is-weight-normal.mr-2
+            label.label.mr-2.has-text-weight-light
               | #{labels.top}
               input.input.is-info.is-small.mr-2( type="number" name="pdf[margin][top]" )
-            label.label.is-weight-normal.mr-2
+            label.label.mr-2.has-text-weight-light
               | #{labels.right}
               input.input.is-info.is-small( type="number" name="pdf[margin][right]" )
-            label.label.is-weight-normal.mr-2
+            label.label.mr-2.has-text-weight-light
               | #{labels.bottom}
               input.input.is-info.is-small( type="number" name="pdf[margin][bottom]" )
-            label.label.is-weight-normal.mr-2
+            label.label.mr-2.has-text-weight-light
               | #{labels.left}
               input.input.is-info.is-small( type="number" name="pdf[margin][left]" )
         div.field

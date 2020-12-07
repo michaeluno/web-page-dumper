@@ -72,6 +72,10 @@ var projectData = {
     'deviceScaleFactor'   : 'Device Scale Factor',
     'mobile'              : 'Mobile',
     'dpr'                 : 'DPR',
+    'screenshot'          : 'Screenshot',
+    'quality'             : 'Quality',
+    'fullPage'            : 'Full Page',
+    'omitBackground'      : 'Omit background',
   }
 };
 app.set( 'config', projectData );

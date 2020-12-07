@@ -23,6 +23,7 @@
     "fs-extra": "^9.0.1",
     "http-errors": "~1.6.3",
     "jstransformer-markdown-it": "^2.1.0",
+    "markdown-it": "^12.0.2",
     "morgan": "~1.9.1",
     "multer": "^1.4.2",
     "nodejs-info": "^1.2.1",

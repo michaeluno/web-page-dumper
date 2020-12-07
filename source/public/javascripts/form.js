@@ -1,47 +1,35 @@
 $(function() {
 
-  // Advanced options section
+  // Fold/unfold the Advanced section.
   $( '.divider' ).on( 'click', function() {
     $( this ).next().toggle( 400 );
     $( this ).find( 'i' ).toggleClass( 'fa-caret-up' );
   });
 
-  // For screenshot outputs
-  $( '.output input[type=radio]' ).on( 'change', function() {
-
-    let _val = $( this ).val();
-    if ( [ 'jpeg', 'jpg', 'png', 'gif' ].includes( _val ) ) {
-      $( '.clip' ).show( 400 );
-    } else {
-     $( '.clip' ).hide( 400 );
-    }
-    if ( 'pdf' === $( this ).val() ) {
-      $( '.pdf' ).show( 400 );
-    } else {
-      $( '.pdf' ).hide( 400 );
-    }
-
-  } )
-  $( '.output input:checked' ).trigger( 'change' );
-
   // For dynamic onchange visibility toggle elements by checkbox
-  $( 'input[type=checkbox][data-onchange=1]' ).on( 'change', function() {
-    let _selector = $( this ).attr( 'data-selector' );
+  $( 'input[type=radio][data-onchange]' ).on( 'change', function() {
+     $( 'input[name="' + $(this).attr('name') + '"]')
+       .not( $( this ) )
+       .trigger( 'deselect' );
+  } );
+  $( 'input[data-onchange]' ).on( 'change deselect', function() { // checkbox or radio
+    let _selector = $( this ).attr( 'data-onchange' );
     if ( $( this ).is( ":checked" ) ) {
       $( _selector ).show( 400 );
     } else {
       $( _selector ).hide( 400 );
     }
   } );
+  $( 'input[data-onchange]:checked' ).trigger( 'change' );
 
-  // For viewport options, when enabled, the add required attributes.
+  // For viewport options, when enabled, add the `required` attributes.
   $( 'input[name=set_viewport]' ).on( 'change', function() {
     let _selector = 'input[name="viewport[width]"], input[name="viewport[height]"]';
     $( '.viewport' ).find( _selector ).prop( 'required', $( this ).is( ':checked' ) );
   } );
   $( 'input[name=set_viewport]:checked' ).trigger( 'change' );
 
-  // Remove name attributes of the inputs in the advanced section. Those inputs are optional, not required.
+  // When submitting the form, remove name attributes of the optional inputs in the advanced section.
   $( 'form[name=main]' ).submit(function( event ) {
 
     // Remove input names of empty values so that the following page do not have redundant query values.
