@@ -41,6 +41,7 @@ var projectData = {
   },
   'package': require('./package.json'),
   'labels': {
+    'reload'              : 'Reload',
     'userAgent'           : 'User Agent',
     'urlPlaceholder'      : 'Type URL here',
     'advanced'            : 'Advanced',
@@ -68,6 +69,9 @@ var projectData = {
     'right'               : 'Right',
     'bottom'              : 'Bottom',
     'left'                : 'Left',
+    'deviceScaleFactor'   : 'Device Scale Factor',
+    'mobile'              : 'Mobile',
+    'dpr'                 : 'DPR',
   }
 };
 app.set( 'config', projectData );

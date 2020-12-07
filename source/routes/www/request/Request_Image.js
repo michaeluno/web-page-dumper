@@ -11,17 +11,13 @@ module.exports = class Request_Image extends Request_Base {
    */
   async _initialize() {
 
-    this.bodyWidth  = this.req.query.vpw || await this.page.evaluate( () => document.body.scrollWidth );
-    this.bodyHeight = this.req.query.vph || await this.page.evaluate( () => document.body.scrollHeight );
-    this.req.debug.log(
-      'viewport:',
-      this.bodyWidth,
-      this.bodyHeight,
-      'document body: ',
-      await this.page.evaluate( () => document.body.scrollWidth ),
-      await this.page.evaluate( () => document.body.scrollHeight )
-    );
-    await this.page.setViewport({ width: this.bodyWidth, height: this.bodyHeight });
+    this.bodyWidth   = this.req.query.viewport.width  || await this.page.evaluate( () => document.body.scrollWidth );
+    this.bodyHeight  = this.req.query.viewport.height || await this.page.evaluate( () => document.body.scrollHeight );
+    this.req.debug.log( 'page dimensions:', this.bodyWidth, this.bodyHeight );
+    await this.page.setViewport( {
+      width:  this.bodyWidth,
+      height: this.bodyHeight
+    } );
 
   }
 

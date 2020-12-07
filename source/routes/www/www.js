@@ -68,17 +68,32 @@ function _handleRequest( req, res, next ) {
     query.cache    = 'undefined' === typeof query.cache
       ? true
       : !! parseInt( query.cache );
-    query.cache_duration = 'undefined' === typeof query.cache_duration
+    query.cache_duration      = 'undefined' === typeof query.cache_duration
         ? cacheLifespan
         : ( parseInt( query.cache_duration ) || cacheLifespan );
-    query.timeout  = 'undefined' === typeof query.timeout ? 30000 : parseInt( query.timeout );
-    query.reload   = !! parseInt( query.reload );
-    query.vpw      = parseInt( query.vpw );
-    query.vph      = parseInt( query.vph );
-    query.ssw      = parseInt( query.ssw );
-    query.ssh      = parseInt( query.ssh );
-    query.ssx      = parseInt( query.ssx ) || 0;
-    query.ssy      = parseInt( query.ssy ) || 0;
+    query.timeout             = 'undefined' === typeof query.timeout ? 30000 : parseInt( query.timeout );
+    query.reload              = !! parseInt( query.reload );
+    query.viewport            = 'undefined' === typeof query.viewport ? {} : query.viewport;
+    if ( query.viewport.width ) {
+      query.viewport.width      = parseInt( query.viewport.width );
+    }
+    if ( query.viewport.height ) {
+      query.viewport.height     = parseInt( query.viewport.height );
+    }
+    if ( query.viewport.deviceScaleFactor ) {
+      query.viewport.deviceScaleFactor = parseInt( query.viewport.deviceScaleFactor );
+    }
+    if ( query.viewport.isMobile ) {
+      query.viewport.isMobile = Boolean( query.viewport.isMobile );
+    }
+    if ( query.viewport.isLandscape ) {
+      query.viewport.isLandscape = Boolean( query.viewport.isLandscape );
+    }
+
+    query.ssw                 = parseInt( query.ssw );
+    query.ssh                 = parseInt( query.ssh );
+    query.ssx                 = parseInt( query.ssx ) || 0;
+    query.ssy                 = parseInt( query.ssy ) || 0;
 
     // query.username
     query.password = 'undefined' === typeof query.password ? '' : query.password;
@@ -121,7 +136,7 @@ function _handleRequest( req, res, next ) {
 
     // HTTP Basic Authentication
     if ( req.query.username ) {
-      await page.authenticate({'username': req.query.username , 'password': req.query.password} );
+      await page.authenticate({ 'username': req.query.username , 'password': req.query.password } );
     }
 
     // Caching
@@ -133,6 +148,12 @@ function _handleRequest( req, res, next ) {
       req.debug.log( await _response.fromCache() ? 'using cache:' : 'not using cache:', await _response.request().resourceType(), await _response.url() );
     });
 
+    // Viewport - set_viewport is needed for a case that the user once set viewport options and then uncheck the Set view port check box.
+    if ( req.query.set_viewport && req.query.viewport.width && req.query.viewport.height ) {
+      await page.setViewport( req.query.viewport );
+    }
+
+    // Request
     let responseHTTP = await page.goto( urlThis, {
       waitUntil: [ "networkidle0", "networkidle2", "domcontentloaded" ],
       timeout: req.query.timeout,

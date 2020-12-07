@@ -49,14 +49,38 @@ form( method="get" name="main" action="/www/" )
           | #{labels.height}
           input.input.is-info.is-small( type="number" name="ssh" )
     div.field
-      label.label.has-text-weight-medium= labels.viewport
-      div.field.has-addons
-        label.label.is-weight-normal.mr-2
-          | #{labels.width}
-          input.input.is-info.is-small.mr-2( type="number" name="vpw" )
-        label.label.is-weight-normal.mr-2
-          | #{labels.height}
-          input.input.is-info.is-small( type="number" name="vph" )
+      div.control
+        label.checkbox.label.has-text-weight-medium
+          input.mr-2( type="checkbox" name="set_viewport" data-onchange=1 data-selector='.viewport' value=1 )
+          | #{labels.viewport}
+    div.container.viewport.hidden
+      div.columns.m-0
+        div.field
+          //label.label.has-text-weight-medium= labels.viewport
+          div.field.has-addons
+            label.label.is-weight-normal.mr-2
+              | #{labels.width}
+              input.input.is-info.is-small.mr-2( type="number" name="viewport[width]" )
+            label.label.is-weight-normal.mr-2
+              | #{labels.height}
+              input.input.is-info.is-small( type="number" name="viewport[height]" )
+      div.columns.mb-0
+        div.field.column.is-one-fifth
+          div.control
+            label.label.is-weight-normal.mr-2
+              | #{labels.dpr}
+              input.input.is-info.is-small.mr-2( type="number" name="viewport[deviceScaleFactor]" step="1" min="1" )
+      div.field
+        div.control
+          label.checkbox
+            input( type="checkbox" name="viewport[isMobile]" value=1 )
+            span.ml-1= labels.mobile
+      div.field.mb-3
+        div.control
+          label.checkbox
+            input( type="checkbox" name="viewport[isLandscape]" value=1 )
+            span.ml-1= labels.landscape
+
     div.field
       label.label.has-text-weight-medium= labels.userAgent
       div.control
@@ -78,8 +102,8 @@ form( method="get" name="main" action="/www/" )
       div.control
         label.checkbox
           input( type="checkbox" name="reload" value=1 )
-          span.ml-1 Reload
-    div.field.pdf
+          span.ml-1= labels.reload
+    div.field.pdf.hidden
       label.label.has-text-weight-medium= labels.pdf
       div.container
         div.columns.mb-0

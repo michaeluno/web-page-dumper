@@ -12,9 +12,11 @@ http(s)://{app address}/www/?url=https%3A%2F%2Fexample.com
 
 ### Query Parameters
 
-Only the `url` parameter is required. The rest is optional.
+Only the `url` parameter is required. The rest is optional. 
 
-#### <required, string> url 
+For boolean values, use `1` or `0' instead of `true` or `false`.
+
+#### <required, string> `url`
 A URL-encoded URL to fetch. 
 
 e.g.
@@ -22,21 +24,45 @@ e.g.
 http(s)://{app address}/www/?url=https%3A%2F%2Fgithub.com
 ```
 
-#### <string> output
+#### <string> `output`
 The output type. Accepts the following values:
 - `json` (default) - outputs the site source code, the HTTP header, the HTTP status code, and content type as JSON with the following root keys: 
   - `url` - <string> the requested URL.
-  - `query` - (array) the HTTP request query key-value pairs.
+  - `query` - <array> the HTTP request query key-value pairs.
   - `resourceType` - <string> the request source type.
   - `contentType` - <string> the HTTP response content type, same as the HTTP header `Content-Type` entry.
   - `status` - <integer> the HTTP status code as a number such as `200` and `404`.
-  - `heaers` - (array) the HTTP header.
+  - `heaers` - <array> the HTTP header.
   - `body`   - <string> the HTTP body, usually an HTML document.
   
 - `html`, `htm` - outputs the site source as `html` or `htm`. HTTP header will be omitted.
 - `mhtml` - outputs the site source as `mhtml`.
 - `png`, `jpg`, `jpeg`, `gif` - outputs a screenthot image of the site
 - `pdf`
+
+#### <array> `viewport`
+
+Sets how the browser should be viewed.
+
+e.g.
+```
+```
+ 
+Accepts the following arguments, same as Puppeteer's `page.setViewport()` method arguments.
+ 
+>  - `width` <number> page width in pixels.
+>  - `height` <number> page height in pixels.
+>  - `deviceScaleFactor` <number> Specify device scale factor (can be thought of as dpr). Defaults to `1`.
+>  - `isMobile` <boolean> Whether the `meta viewport` tag is taken into account. Defaults to `false`.
+>  - `isLandscape` <boolean> Specifies if viewport is in landscape mode. Defaults to `false`.
+>  
+> -- [Puppeteer API Tip-Of-Tree page.setViewport(viewport)][1]
+
+[1]: https://github.com/puppeteer/puppeteer/blob/main/docs/api.md#pagesetviewportviewport
+
+Does not accept the following arguments.
+
+- `hasTouch`
 
 #### <integer> vpw
 Sets a browser viewport width. Use this to simulate a browser. 
@@ -85,8 +111,6 @@ When the output type is set to `pdf`, the following sub-arguments of the `pdf` p
 
 For more details please see [puppeteer's pdf options](https://github.com/puppeteer/puppeteer/blob/main/docs/api.md#pagepdfoptions) as the arguments are the same except some unsupported arguments. 
 
-For boolean values, use `1` or `0' instead of `true` or `false`.
-
 e.g.
 ```
 ```
@@ -134,9 +158,9 @@ e.g.
 > - `cm` - centimeter
 > - `mm` - millimeter
 >
-> --- [Puppeteer API Tip-Of-Tree page.pdf([options])][1]
+> -- [Puppeteer API Tip-Of-Tree page.pdf([options])][2]
 
-[1]: https://github.com/puppeteer/puppeteer/blob/main/docs/api.md#pagepdfoptions
+[2]: https://github.com/puppeteer/puppeteer/blob/main/docs/api.md#pagepdfoptions
 
 ##### Unsupported Arguments
   - `path` <string> 
