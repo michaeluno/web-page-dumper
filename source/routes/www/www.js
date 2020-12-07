@@ -104,7 +104,10 @@ function _handleRequest( req, res, next ) {
 
     // Basic Authentication
     query.password = 'undefined' === typeof query.password ? '' : query.password;
-    
+
+    // Additional HTTP Headers
+    query.headers             = 'undefined' === typeof query.headers ? {} : query.headers;
+
     // .launch( { arg: ... } )
     query.args                = 'undefined' === typeof query.args ? [] : query.args;
 
@@ -163,6 +166,11 @@ function _handleRequest( req, res, next ) {
     // Viewport - set_viewport is needed for a case that the user once set viewport options and then uncheck the Set view port check box.
     if ( req.query.set_viewport && req.query.viewport.width && req.query.viewport.height ) {
       await page.setViewport( req.query.viewport );
+    }
+
+    // Additional HTTP headers.
+    if ( req.query.headers.length ) {
+      await page.setExtraHTTPHeaders( req.query.headers );
     }
 
     // Request
