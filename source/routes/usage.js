@@ -1,5 +1,5 @@
-var express = require('express');
-var router = express.Router();
+const express = require('express');
+const router = express.Router();
 const MarkdownIt = require( 'markdown-it' );
 const fs         = require( 'fs' )
 const path       = require( 'path' )
@@ -9,8 +9,10 @@ router.get('/', function(req, res, next ) {
 
   res.locals.title = 'Usage - ' + res.locals.title;
   let _markdownContent = fs.readFileSync( path.resolve( __dirname, '../../README.md' ), 'utf8' ) ;
+  // _markdownContent.replace( 'http(s)://{app address}', res.locals.urlHome );
+  // _markdownContent.replace( /http\(s\):\/\/{app address}/g, res.locals.urlHome );
   let _md      = new MarkdownIt();
-  var _html    = _md.render( _markdownContent );
+  let _html    = _md.render( _markdownContent );
   let $        = cheerio.load( _html );
 
   // Remove elements
@@ -20,6 +22,10 @@ router.get('/', function(req, res, next ) {
   $( 'li > p' ).each( function(){
     $( this ).replaceWith( $( this ).html() );
   } );
+  $( 'h2:contains("License")' )
+    .nextAll()
+    .addBack()
+    .remove();
 
   // Add classes
   $( 'h2, h3, h4, h5, h6' ).addClass( 'title' );
@@ -31,9 +37,10 @@ router.get('/', function(req, res, next ) {
   $( 'div > p, div > pre' ).addClass( 'mb-5' );
 
   // Add target="_blank"
+  // $( 'h3, h4' ).before( "<div class='divider'></div>" );
   $( 'a' ).attr( 'target', '_blank' );
 
-  res.locals.content = $.html();
+  res.locals.content = $.html().replace( /http\(s\):\/\/{app address}/g, res.locals.urlHome );
   res.render( 'usage', req.app.get( 'config' ) );
 });
 module.exports = router;
