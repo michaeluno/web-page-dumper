@@ -1,7 +1,6 @@
-const Request_Base = require( './Request_Base.js' );
-const nodeinfo = require('nodejs-info');
+const Request_Image = require( './Request_Image.js' );
 
-module.exports = class Request_debug extends Request_Base {
+module.exports = class Request_debug extends Request_Image {
 
   type = 'debug';
 
@@ -19,8 +18,23 @@ module.exports = class Request_debug extends Request_Base {
     this.req.debug.log( 'HTTP Status Code:', await this.responseHTTP.status() );
     this.req.debug.log( 'HTTP Headers:', await this.responseHTTP.headers() );
     this.res.locals.title = 'Debug Info - ' + _config.project.name;
-    this.res.locals.debugOutput = this.req.debug.entries;
-
+    let _debug = {
+      log: this.req.debug.entries
+    };
+    await this._autoScroll( this.page );
+    _debug.screenshot = await this.page.screenshot( {
+      // fullPage: true,
+      clip: {
+        x: 0,
+        y: 0,
+        width: await this.page.evaluate( () => document.body.scrollWidth ),
+        height: await this.page.evaluate( () => document.body.scrollHeight ),
+      },
+      type: 'jpeg',
+      quality: 60,
+      encoding: 'base64'
+    } );
+    this.res.locals.debug = _debug;
     this.res.render( 'debug', this.req.app.get( 'config' ) );
   }
 

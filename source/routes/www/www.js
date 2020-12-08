@@ -371,7 +371,7 @@ function _handleRequest( req, res, next ) {
         try {
           if ( fs.existsSync( _cachePath ) && ! _isCacheExpired( _cachePath, _cacheDuration ) ) {
             let _contentType = fs.existsSync( _cachePathContentType ) ? await fse.readFile( _cachePathContentType, 'utf8' ) : undefined;
-            // req.debug.log( 'using cache:', _resourceType, await request.url() );
+            req.debug.log( 'using cache:', _resourceType, await request.url() );
             request.respond({
                 status: 200,
                 contentType: _contentType,

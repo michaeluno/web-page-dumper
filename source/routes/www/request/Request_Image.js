@@ -80,7 +80,6 @@ module.exports = class Request_Image extends Request_Base {
    * @see https://stackoverflow.com/a/53527984
    * @param page
    * @returns {Promise<void>}
-   * @private
    */
   async _autoScroll(page){
     await page.evaluate(async () => {
