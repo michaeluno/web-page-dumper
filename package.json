@@ -6,6 +6,9 @@
   "author": "Michael Uno <michael2@michaeluno.jp> (https://michaeluno.jp/)",
   "license": "MIT",
   "private": true,
+  "engines": {
+    "node": "12.x"
+  },
   "repository": {
     "type": "git",
     "url": "git@github.com:michaeluno/web-page-dumper.git"
@@ -13,6 +16,25 @@
   "scripts": {
     "start": "node ./bin/www"
   },
+  "keywords": [
+    "heroku",
+    "web",
+    "web-page",
+    "web-page",
+    "dumper",
+    "proxy",
+    "cross-domain",
+    "puppeteer",
+    "browser",
+    "chrome",
+    "JavaScript",
+    "source-code",
+    "screenshot",
+    "pdf",
+    "jpeg",
+    "jpg",
+    "png"
+  ],
   "dependencies": {
     "body-parser": "^1.19.0",
     "cheerio": "^1.0.0-rc.3",
