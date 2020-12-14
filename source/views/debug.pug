@@ -1,0 +1,21 @@
+extends index
+
+block content-main
+  h1.title.is-2 Debug
+  h2.title.is-3 System Info
+  pre.mb-4
+    code
+      ul
+        each value, key in systemInfo
+          li= key + ': ' + value
+  h2.title.is-3 Request Log
+  pre.mb-4
+    code
+      ul
+        each logItem in debug.log
+          li= logItem
+  h2.title Screenshot
+  div.container
+    div.columns.is-centered
+      div.column.is-one-fifth
+        img( src="data:image/jpeg;base64," + debug.screenshot )

@@ -1,8 +1,6 @@
-extends layout/layout
+extends layout/content
 
-block content
-  include ./content-top.pug
-  section.section
-    div.container
-      include ./content.pug
-
+block content-main
+  div.columns.is-centered.is-vcentered.min-height-400
+    div.column.is-half
+      include form-main.pug

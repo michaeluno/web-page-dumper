@@ -1,0 +1,10 @@
+# Todo
+
+## Minor
+- Add an option to set proxies.
+- Set <head><title> for pug template pages.
+
+## Major
+- Add the ability to chain requests -> click on element.
+- Add the ability to set a clip are for scresshots by element.
+- Add the ability to scrape outputs by element.

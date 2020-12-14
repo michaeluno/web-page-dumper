@@ -1,7 +1,10 @@
-extends index
+extends layout/layout
 
 block content
-  include ./content-top.pug
-  section.section
-    div.container
-      include ./content-error.pug
+  div.m-5
+    h1.title= status + ' ' + message
+    if error
+      p.subtitle= error.name + ': ' +  error.message
+      pre #{error.stack}
+
+block footer

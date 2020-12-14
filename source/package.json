@@ -1,6 +1,6 @@
 {
   "name": "web-page-dumper",
-  "description": "Dumps web page source code including JavaScript generated contents.",
+  "description": "Dumps web page outputs including JavaScript generated contents.",
   "version": "1.0.0",
   "url": "https://github.com/michaeluno/web-page-dumper",
   "author": "Michael Uno <michael2@michaeluno.jp> (https://michaeluno.jp/)",
@@ -14,12 +14,28 @@
     "start": "node ./bin/www"
   },
   "dependencies": {
-    "bulma": "^0.9.1",
+    "body-parser": "^1.19.0",
+    "cheerio": "^1.0.0-rc.3",
+    "compression": "^1.7.4",
     "cookie-parser": "~1.4.4",
     "debug": "~2.6.9",
     "express": "~4.16.1",
+    "fs-extra": "^9.0.1",
     "http-errors": "~1.6.3",
+    "jstransformer-markdown-it": "^2.1.0",
+    "markdown-it": "^12.0.2",
     "morgan": "~1.9.1",
-    "pug": "2.0.0-beta11"
+    "multer": "^1.4.2",
+    "nodejs-info": "^1.2.1",
+    "object-hash": "^2.0.3",
+    "pug": "2.0.0-beta11",
+    "puppeteer": "^5.5.0",
+    "temp-dir": "^2.0.0",
+    "username": "^5.1.0"
+  },
+  "devDependencies": {
+    "jquery": "^3.5.1",
+    "bulma": "^0.9.1",
+    "@creativebulma/bulma-divider": "^1.1.0"
   }
 }

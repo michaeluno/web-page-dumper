@@ -1,0 +1,28 @@
+section.hero.is-dark
+  div.hero-body.hero-head.pb-5
+    div.container
+      h1.title
+        a.has-text-white(href=urlHome)
+          span.icon
+            i.fas.fa-globe-americas
+          span.ml-4= project.name
+      p= package.description
+  nav.navbar( role="navigation" aria-label="main navigation" )
+    div.navbar-brand.ml-3
+      a.navbar-item( href=urlHome )
+        span.icon.mr-1
+          i.fas.fa-home
+        | Home
+      a.navbar-item( href=urlUsage )
+        span.icon.mr-1
+          i.fas.fa-file-alt
+        | Usage
+    div.navbar-menu
+      div.navbar-start
+      div.navbar-end
+        div.navbar-item
+          div.buttons
+            a.button.is-light.pr-2( href=project.url target="_blank" )
+              span.icon.mr-3
+                i.fab.fa-github-square.fa-2x
+              strong GitHub

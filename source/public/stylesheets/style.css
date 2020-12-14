@@ -11,3 +11,22 @@ body > div {
 .min-height-400 {
   min-height: 400px;
 }
+
+.hidden {
+  display: none;
+}
+
+.is-weight-normal {
+  font-weight: normal;
+}
+
+/* Form Elements */
+input[type=number] {
+  text-align: right;
+}
+
+/* Override Bulma rules */
+/*.field .label:not(:last-child) {*/
+/*    margin-bottom: .3em;*/
+/*    margin-top: 0.1em;*/
+/*}*/
