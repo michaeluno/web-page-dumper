@@ -1,6 +1,7 @@
 # Externals
-*/node_modules
-
+*node_modules/
+npm-debug.log
+/*.env
 
 # Editor files.
 .idea
