@@ -27,6 +27,7 @@ var routerWWW   = require( './routes/www/www.js' );
 
 var app = express();
 app.use(compression({}));
+app.enable( 'trust proxy' );  // for Heroku environments to detect whether the scheme is https or not.
 
 // Custom Data
 var projectData = {
