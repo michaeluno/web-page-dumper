@@ -40,7 +40,7 @@ router.get('/', function(req, res, next ) {
   // $( 'h3, h4' ).before( "<div class='divider'></div>" );
   $( 'a' ).attr( 'target', '_blank' );
 
-  res.locals.content = $.html().replace( /http\(s\):\/\/{app address}/g, res.locals.urlHome );
+  res.locals.content = $.html().replace( /http\(s\):\/\/{app address}/g, ( req.secure ? 'https:' : 'http:' ) + res.locals.urlHome );
   res.render( 'usage', req.app.get( 'config' ) );
 });
 module.exports = router;
