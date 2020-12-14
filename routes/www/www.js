@@ -241,6 +241,7 @@ function _handleRequest( req, res, next ) {
           '--start-maximized', // Start in maximized state for screenshots // @see https://github.com/puppeteer/puppeteer/issues/1273#issuecomment-667646971
           '--disk-cache-dir=' + _pathUserDataDir + path.sep + 'disk-cache',
           '--disable-background-networking',
+          '--no-sandbox' // to run on Heroku @see https://elements.heroku.com/buildpacks/jontewks/puppeteer-heroku-buildpack
 
           // To save CPU usage, @see https://stackoverflow.com/a/58589026
           // '--no-sandbox',
