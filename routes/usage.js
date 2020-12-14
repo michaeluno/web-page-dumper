@@ -8,7 +8,7 @@ const cheerio    = require('cheerio')
 router.get('/', function(req, res, next ) {
 
   res.locals.title = 'Usage - ' + res.locals.title;
-  let _markdownContent = fs.readFileSync( path.resolve( __dirname, '../../README.md' ), 'utf8' ) ;
+  let _markdownContent = fs.readFileSync( path.resolve( __dirname, '../README.md' ), 'utf8' ) ;
   // _markdownContent.replace( 'http(s)://{app address}', res.locals.urlHome );
   // _markdownContent.replace( /http\(s\):\/\/{app address}/g, res.locals.urlHome );
   let _md      = new MarkdownIt();
