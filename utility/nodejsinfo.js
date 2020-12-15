@@ -9,6 +9,7 @@ const nodeinfo = require( 'nodejs-info' );
 const os   = require('os');   // nodejs.org/api/os.html
 const http = require('http'); // nodejs.org/api/http.html
 const fs   = require('fs');   // nodejs.org/api/fs.html
+const { networkInterfaces } = require('os'); // for _getIP()
 
 const handlebars       = require('handlebars');        // handlebars templating
 const prettysize       = require('prettysize');        // convert bytes to other sizes
@@ -51,10 +52,11 @@ const template = `<main>
     {{/if}}
     <table>
         <thead>
-            <th colspan="2"><h2>OS</h2></th>
+            <th colspan="2"><h2>Server</h2></th>
         </thead>
         <tbody>
             <tr><td>hostname</td><td>{{os.hostname}}</td></tr>
+            <tr><td>ip address</td><td>{{os.ip_address}}</td></tr>
             <tr><td>type</td><td>{{os.type}}</td></tr>
             <tr><td>platform</td><td>{{os.platform}}</td></tr>
             <tr><td>release</td><td>{{os.release}}</td></tr>
@@ -168,6 +170,7 @@ function nodejsinfo(req, options) {
     context.os.freemempercent = Math.round(context.os.freemem/context.os.totalmem*100);
     context.os.totalmem = prettysize(context.os.totalmem);
     context.os.freemem = prettysize(context.os.freemem);
+    context.os.ip_address = _getIP();
     // bit of magic to generate nice presentation for CPUs info
     const cpus = { model: {}, speed: {} };
     for (let c=0; c<os.cpus().length; c++) {
@@ -209,6 +212,22 @@ function nodejsinfo(req, options) {
     const html = templateFn(context);
 
     return html;
+}
+
+function _getIP() {
+
+    const nets = networkInterfaces();
+    let _ipAddresses = [];
+    for (const name of Object.keys(nets)) {
+        for (const net of nets[name]) {
+            // skip over non-ipv4 and internal (i.e. 127.0.0.1) addresses
+            if (net.family === 'IPv4' && !net.internal) {
+                _ipAddresses.push( net.address );
+            }
+        }
+    }
+    return _ipAddresses.join( ', ' );
+
 }
 
 module.exports = nodejsinfo; // ≡ export default nodeinfo
