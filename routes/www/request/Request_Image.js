@@ -28,8 +28,13 @@ module.exports = class Request_Image extends Request_Base {
 
     await this._autoScroll( this.page );
     let _img = await this.page.screenshot( _screenshot );
-    this.res.writeHead( 200, { 'Content-Type': 'image/' + this.type } );
-    this.res.end( _img, 'binary' );
+    if ( 'base64' !== _screenshot.encoding ) {
+      this.res.writeHead( 200, { 'Content-Type': 'image/' + this.type } );
+      this.res.end( _img, 'binary' );
+      return;
+    }
+    this.res.writeHead( 200, { 'Content-Type': 'text/plain' } );
+    this.res.end( _img, 'utf8' );
 
   }
 
@@ -39,13 +44,15 @@ module.exports = class Request_Image extends Request_Base {
 
       delete _screenshot.fullPage;
       delete _screenshot.path;
-      delete _screenshot.encoding;
       _screenshot.type = this.type;
       if ( 'undefined' !== typeof _screenshot.quality ) {
         _screenshot.quality        = parseInt( _screenshot.quality );
       }
       if ( 'undefined' !== typeof _screenshot.omitBackground ) {
         _screenshot.omitBackground = Boolean( _screenshot.omitBackground );
+      }
+      if ( 'base64' !== _screenshot.encoding ) {
+        delete _screenshot.encoding;
       }
       _screenshot.clip.width  = parseInt( this.req.query.screenshot.clip.width );
       _screenshot.clip.height = parseInt( this.req.query.screenshot.clip.height );
