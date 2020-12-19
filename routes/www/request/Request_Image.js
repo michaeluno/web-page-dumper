@@ -28,6 +28,9 @@ module.exports = class Request_Image extends Request_Base {
 
     await this._autoScroll( this.page );
     let _img = await this.page.screenshot( _screenshot );
+
+    await this._setHeader( this.res );
+
     if ( 'base64' !== _screenshot.encoding ) {
       this.res.writeHead( 200, { 'Content-Type': 'image/' + this.type } );
       this.res.end( _img, 'binary' );

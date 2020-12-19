@@ -4,6 +4,8 @@ module.exports = class Request_json extends Request_Base {
   type = 'json';
 
   async do() {
+    
+    await this._setHeader( this.res );
     this.res.setHeader( 'Content-Type', 'application/json' );
     this.res.json( {
       'url': await this.responseHTTP.url(),

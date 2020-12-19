@@ -35,6 +35,7 @@ module.exports = class Request_debug extends Request_Image {
       encoding: 'base64'
     } );
     this.res.locals.debug = _debug;
+    await this._setHeader( this.res );
     this.res.render( 'debug', this.req.app.get( 'config' ) );
   }
 
