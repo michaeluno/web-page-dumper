@@ -41,10 +41,14 @@ module.exports = class Request_Base {
 
     /// Set the requested web site headers.
     let _headers = await this.responseHTTP.headers();
-    let _headersFixed = {};
     for ( let [ key, value ] of Object.entries( _headers ) ) {
-      _headersFixed[ key.replace(/\b\w/g, l => l.toUpperCase()) ] = value.replace(/\r?\n|\r/g, '');
-      this.res.setHeader( key.replace(/\b\w/g, l => l.toUpperCase()), value.replace(/\r?\n|\r/g, '') );
+
+      let _key   = key.replace(/\b\w/g, l => l.toUpperCase() );
+      let _value = 'Set-Cookie' === _key
+        ? value.split( /\r?\n|\r/g )
+        : value.replace(/\r?\n|\r/g, '' );
+      this.res.setHeader( _key , _value );
+
     }
     this.res.removeHeader( 'Content-Encoding' ); // "Content-Encoding: gzip" causes a blank page in the browser.
 
