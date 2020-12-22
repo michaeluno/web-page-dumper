@@ -26,11 +26,13 @@ module.exports = class Request_Image extends Request_Base {
     let _screenshot = this._getScreenShotOptions( this.req, this.bodyWidth, this.bodyHeight );
     this.req.debug.log( 'Screenshot options:', _screenshot );
 
+this.req.debug.log( 'Scrolling' );
     await this._autoScroll( this.page );
+this.req.debug.log( 'Taking screenshot' );
     let _img = await this.page.screenshot( _screenshot );
-
+this.req.debug.log( 'Setting header' );
     await this._setHeader( this.res );
-
+this.req.debug.log( 'Set header' );
     if ( 'base64' !== _screenshot.encoding ) {
       this.res.writeHead( 200, { 'Content-Type': 'image/' + this.type } );
       this.res.end( _img, 'binary' );
@@ -38,7 +40,7 @@ module.exports = class Request_Image extends Request_Base {
     }
     this.res.writeHead( 200, { 'Content-Type': 'text/plain' } );
     this.res.end( _img, 'utf8' );
-
+this.req.debug.log( 'Image sent' );
   }
 
     _getScreenShotOptions( req, bodyWidth, bodyHeight ) {
