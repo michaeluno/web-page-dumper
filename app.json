@@ -1,0 +1,8 @@
+{
+  "repository": "https://github.com/michaeluno/web-page-dumper",
+  "buildpacks": [
+    {
+      "url": "https://github.com/jontewks/puppeteer-heroku-buildpack.git"
+    }
+  ]
+}
