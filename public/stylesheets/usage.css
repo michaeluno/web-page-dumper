@@ -8,3 +8,8 @@
     padding: 0.4em 0 0.6em 0.6em;
     margin-top: 1.2em;
 }
+
+li img {
+    vertical-align: bottom;
+    margin: 0 0.2em;
+}

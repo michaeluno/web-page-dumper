@@ -17,8 +17,11 @@ router.get('/', function(req, res, next ) {
 
   // Remove elements
   let _h1s     = $( 'h1' );
-  _h1s.next( 'p' ).remove();
+  _h1s.nextUntil( 'h2' ).remove();
   _h1s.remove();
+
+  $( 'h2:contains("Demo")' ).nextUntil( 'h2' ).addBack().remove();
+
   $( 'li > p' ).each( function(){
     $( this ).replaceWith( $( this ).html() );
   } );

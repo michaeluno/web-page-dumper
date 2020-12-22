@@ -210,8 +210,8 @@ http(s)://{app address}/www/?url=https%3A%2F%2Fgoogle.com%2F&output=jpg&args[]=-
 ## Deployment to Heroku
 This web application is meant to run on [Heroku](https://www.heroku.com/). 
 
-1. Create a [Heroku account](https://id.heroku.com/).
-2. Click <a href="https://heroku.com/deploy?template=https://github.com/michaeluno/web-page-dumper" target="_blank"><img src="https://www.herokucdn.com/deploy/button.svg" title="Deploy"></a>
+1. Log in to Heroku. If you don't have an account create a [Heroku account](https://id.heroku.com/).
+2. Click [![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/michaeluno/web-page-dumper)
 3. In the following page, enter your desired app name and press the `Deploy App` button which will start deploying.
 4. After finishing the deployment, click on `Manage App`.
 5. In the following page, click on `Open App`.   
