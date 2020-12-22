@@ -11,6 +11,8 @@ const getDate  = require( './utility/getDate' );
 
 const cleanUserData = require( './tasks/cleanUserData' );
 
+const favicon = require( 'serve-favicon' );
+
 // Additional dependencies
 
 const tempDirectory = require('temp-dir');
@@ -148,6 +150,9 @@ app.use(function(err, req, res, next) {
   res.render( 'error', req.app.get( 'config' ) );
 
 });
+
+// Favicon
+app.use( favicon( path.join( __dirname, 'public', 'images', 'favicon.svg' ) ) );
 
 // Periodical routines.
 cleanUserData( tempDirPathUserData );

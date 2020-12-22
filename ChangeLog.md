@@ -1,5 +1,8 @@
 # Change Log
 
+#### 1.0.2
+- Set a favicon.
+
 #### 1.0.1
 - Fixed a bug that when an empty value passed to the `quality` parameter, puppetter crashed.
 

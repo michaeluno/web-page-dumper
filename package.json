@@ -38,6 +38,7 @@
   "dependencies": {
     "body-parser": "^1.19.0",
     "cheerio": "^1.0.0-rc.3",
+    "clean-css": ">=4.1.11",
     "compression": "^1.7.4",
     "cookie-parser": "~1.4.4",
     "debug": "~2.6.9",
@@ -52,9 +53,9 @@
     "object-hash": "^2.0.3",
     "pug": "2.0.0-beta11",
     "puppeteer": "^5.5.0",
+    "serve-favicon": "^2.5.0",
     "temp-dir": "^2.0.0",
-    "username": "^5.1.0",
-    "clean-css": ">=4.1.11"
+    "username": "^5.1.0"
   },
   "devDependencies": {
     "jquery": "^3.5.1",
