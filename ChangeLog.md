@@ -1,5 +1,8 @@
 # Change Log
 
+#### 1.0.4
+- Added support for Japanese, Korean and Chinese fonts.
+
 #### 1.0.3 
 - Fixed a bug that closing the browser was not handled properly.
 
