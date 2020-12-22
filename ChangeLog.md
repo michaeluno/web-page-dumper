@@ -1,5 +1,8 @@
 # Change Log
 
+#### 1.0.3 
+- Fixed a bug that closing the browser was not handled properly.
+
 #### 1.0.2
 - Set a favicon.
 

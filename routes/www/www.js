@@ -18,6 +18,8 @@ const Request_jpeg  = require( './request/Request_jpeg' );
 const Request_png   = require( './request/Request_png' );
 
 let browserWSEndpoint;
+let browsingStarted;
+
 /**
  * Stores flags indicating whether a URL request is handled or not.
  * @type {{}}
@@ -125,7 +127,7 @@ function _handleRequest( req, res, next ) {
    */
   async function _render( urlThis, req, res ) {
 
-    let _browsingStarted = Date.now();
+    browsingStarted = Date.now();
     let _typeOutput = req.query.output;
 
     let browser  = await _getBrowser( browserWSEndpoint, req );
@@ -184,7 +186,7 @@ function _handleRequest( req, res, next ) {
       responseHTTP = await page.reload({ waitUntil: [ "networkidle0", "networkidle2", "domcontentloaded" ] } );
     }
 
-    req.debug.log( 'Elapsed:', Date.now() - _browsingStarted, 'ms' );
+    req.debug.log( 'Elapsed:', Date.now() - browsingStarted, 'ms' );
 
     await _processRequest( urlThis, page, req, res, responseHTTP, _typeOutput );
     await page.goto( 'about:blank' );
@@ -197,7 +199,7 @@ function _handleRequest( req, res, next ) {
 
     // If after 60 seconds and the browser is not used, close it.
     setTimeout( function() {
-      if ( Date.now() - _browsingStarted >= 60000 ) {
+      if ( Date.now() - browsingStarted >= 60000 ) {
         req.debug.log( 'closing the browser.' );
         browser.close(); // not closing the browser instance to reuse it
         browserWSEndpoint = '';
