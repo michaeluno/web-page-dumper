@@ -53,7 +53,8 @@
     "pug": "2.0.0-beta11",
     "puppeteer": "^5.5.0",
     "temp-dir": "^2.0.0",
-    "username": "^5.1.0"
+    "username": "^5.1.0",
+    "clean-css": ">=4.1.11"
   },
   "devDependencies": {
     "jquery": "^3.5.1",
