@@ -1,5 +1,12 @@
 # Web Page Dumper
-Dumps web site contents.
+Dumps web page outputs including JavaScript generated contents.
+
+<p align="center">
+  <img src="assets/image/screenshot.jpg" width="600" alt="Web Page Dumper" title="screenshot"> 
+</p>
+
+## Demo
+Visit [here](https://web-page-dumper.herokuapp.com/). If the server is sleeping, it takes several seconds to wake up. 
 
 ## Usage
 
@@ -205,7 +212,9 @@ This web application is meant to run on [Heroku](https://www.heroku.com/).
 
 1. Create a [Heroku account](https://id.heroku.com/).
 2. Click <a href="https://heroku.com/deploy?template=https://github.com/michaeluno/web-page-dumper" target="_blank"><img src="https://www.herokucdn.com/deploy/button.svg" title="Deploy"></a>
-3. In the following page, enter your desired app name and press the `Deploy App` button which will starts the process. 
+3. In the following page, enter your desired app name and press the `Deploy App` button which will start deploying.
+4. After finishing the deployment, click on `Manage App`.
+5. In the following page, click on `Open App`.   
 
 ## License
 MIT
