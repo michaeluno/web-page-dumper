@@ -1,7 +1,7 @@
 {
   "name": "web-page-dumper",
   "description": "Dumps web page outputs including JavaScript generated contents.",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "url": "https://github.com/michaeluno/web-page-dumper",
   "author": "Michael Uno <michael2@michaeluno.jp> (https://michaeluno.jp/)",
   "license": "MIT",
