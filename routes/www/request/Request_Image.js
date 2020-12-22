@@ -48,6 +48,9 @@ module.exports = class Request_Image extends Request_Base {
       _screenshot.type = this.type;
       if ( 'undefined' !== typeof _screenshot.quality ) {
         _screenshot.quality        = parseInt( _screenshot.quality );
+        if ( isNaN( _screenshot.quality ) ) {
+          delete _screenshot.quality
+        }
       }
       if ( 'undefined' !== typeof _screenshot.omitBackground ) {
         _screenshot.omitBackground = Boolean( _screenshot.omitBackground );
