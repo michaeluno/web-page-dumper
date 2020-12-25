@@ -1,5 +1,8 @@
 # Change Log
 
+#### 1.0.5
+- Fix a bug that transferring cookies was partial.
+
 #### 1.0.4
 - Added support for Japanese, Korean and Chinese fonts.
 

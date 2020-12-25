@@ -33,6 +33,23 @@ module.exports = class Request_Base {
 
   async do() {}
 
+  /**
+   * Transfer Puppeteer cookies to Express cookies.
+   * @param res
+   * @returns {Promise<void>}
+   * @private
+   */
+  async _setCookies( res ) {
+    let _cookies = await this.page.cookies();
+    this.req.debug.log( 'Cookies', _cookies );
+    for ( let _cookie of _cookies ){
+      // Puppeteer sets `expires` serving as the `maxAge` value indicating how long it lasts. So format it to a date object.
+      if ( _cookie.expires && 'number' === typeof _cookie.expires ) {
+        _cookie.expires = new Date( ( + new Date() ) + _cookie.expires ); // current timestamp + lifespan (maxAge)
+      }
+      res.cookie( _cookie.name, _cookie.value, _cookie );
+    }
+  }
 
   async _setHeader( res ) {
 
@@ -41,16 +58,23 @@ module.exports = class Request_Base {
 
     /// Set the requested web site headers.
     let _headers = await this.responseHTTP.headers();
+    let _headerToSend = {};
     for ( let [ key, value ] of Object.entries( _headers ) ) {
 
       let _key   = key.replace(/\b\w/g, l => l.toUpperCase() );
+      if ( 'Set-Cookie' === _key ) {
+        continue;
+      }
       let _value = 'Set-Cookie' === _key
         ? value.split( /\r?\n|\r/g )
         : value.replace(/\r?\n|\r/g, '' );
       this.res.setHeader( _key , _value );
+      _headerToSend[ _key ] = _value
 
     }
     this.res.removeHeader( 'Content-Encoding' ); // "Content-Encoding: gzip" causes a blank page in the browser.
+
+    this.req.debug.log( 'Set Header:', _headerToSend );
 
   }
 

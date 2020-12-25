@@ -6,6 +6,7 @@ module.exports = class Request_html extends Request_Base {
   async do() {
 
     await this._setHeader( this.res );
+    await this._setCookies( this.res );
 
     // Output the document
     let _html = await this.page.content();

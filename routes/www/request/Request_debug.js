@@ -16,7 +16,6 @@ module.exports = class Request_debug extends Request_Image {
 
     this.req.debug.log( 'HTTP Version:', await this.page.evaluate( () => performance.getEntries()[0].nextHopProtocol ) );
     this.req.debug.log( 'HTTP Status Code:', await this.responseHTTP.status() );
-    this.req.debug.log( 'HTTP Headers:', await this.responseHTTP.headers() );
     this.res.locals.title = 'Debug Info - ' + _config.project.name;
     let _debug = {
       log: this.req.debug.entries
@@ -36,6 +35,8 @@ module.exports = class Request_debug extends Request_Image {
     } );
     this.res.locals._debug = _debug; // avoid the key 'locals.debug' as it triggers express console outputs
     await this._setHeader( this.res );
+    await this._setCookies( this.res );
+
     this.res.render( 'debug', this.req.app.get( 'config' ) );
   }
 
