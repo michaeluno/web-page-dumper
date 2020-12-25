@@ -161,9 +161,9 @@ function _handleRequest( req, res, next ) {
     // await _handleCaches( page, req ); // @deprecated
 
     // Debug
-    page.on( 'response', async _response => {
-      req.debug.log( await _response.fromCache() ? 'using cache:' : 'not using cache:', await _response.request().resourceType(), await _response.url() );
-    });
+    // page.on( 'response', async _response => {
+    //   req.debug.log( await _response.fromCache() ? 'using cache:' : 'not using cache:', await _response.request().resourceType(), await _response.url() );
+    // });
 
     // Viewport - set_viewport is needed for a case that the user once set viewport options and then uncheck the Set view port check box.
     if ( req.query.set_viewport && req.query.viewport.width && req.query.viewport.height ) {
