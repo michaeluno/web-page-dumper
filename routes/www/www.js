@@ -9,16 +9,19 @@ const fse = require( 'fs-extra' );
 const cacheLifespan = 86400;
 const Debug = require( '../../utility/debug.js' );
 
-const Request_json  = require( './request/Request_json' );
-const Request_debug = require( './request/Request_debug' );
-const Request_html  = require( './request/Request_html' );
-const Request_mhtml = require( './request/Request_mhtml' );
-const Request_pdf   = require( './request/Request_pdf' );
-const Request_jpeg  = require( './request/Request_jpeg' );
-const Request_png   = require( './request/Request_png' );
+const puppeteerExtra  = require( 'puppeteer-extra' );
+const pluginStealth   = require( 'puppeteer-extra-plugin-stealth' );
 
-let browserWSEndpoint;
-let browsingStarted;
+const Request_json    = require( './request/Request_json' );
+const Request_debug   = require( './request/Request_debug' );
+const Request_html    = require( './request/Request_html' );
+const Request_mhtml   = require( './request/Request_mhtml' );
+const Request_pdf     = require( './request/Request_pdf' );
+const Request_jpeg    = require( './request/Request_jpeg' );
+const Request_png     = require( './request/Request_png' );
+
+let browserEndpoints = {};
+let startedBrowsers  = {};
 
 /**
  * Stores flags indicating whether a URL request is handled or not.
@@ -115,6 +118,7 @@ function _handleRequest( req, res, next ) {
 
     // PDF
     query.pdf                 = query.pdf || {};
+
     return query;
   }
   /**
@@ -127,12 +131,15 @@ function _handleRequest( req, res, next ) {
    */
   async function _render( urlThis, req, res ) {
 
-    browsingStarted = Date.now();
     let _typeOutput = req.query.output;
 
-    let browser  = await _getBrowser( browserWSEndpoint, req );
-    browserWSEndpoint = browser.wsEndpoint();
-
+    let _keyQuery = hash( {
+      'args': req.query.args
+    } );
+    startedBrowsers[ _keyQuery ] = Date.now();
+    console.log( 'key query: ', _keyQuery );
+    let browser  = await _getBrowser( browserEndpoints[ _keyQuery ], req );
+    browserEndpoints[ _keyQuery ] = browser.wsEndpoint();
     // Incognito mode - deprecated as a new tab cannot be created but it forces to open a new window
     // let context = await browser.createIncognitoBrowserContext();
     // let page    = await context.newPage();
@@ -186,7 +193,7 @@ function _handleRequest( req, res, next ) {
       responseHTTP = await page.reload({ waitUntil: [ "networkidle0", "networkidle2", "domcontentloaded" ] } );
     }
 
-    req.debug.log( 'Elapsed:', Date.now() - browsingStarted, 'ms' );
+    req.debug.log( 'Elapsed:', Date.now() - startedBrowsers[ _keyQuery ], 'ms' );
 
     await _processRequest( urlThis, page, req, res, responseHTTP, _typeOutput );
     await page.goto( 'about:blank' );
@@ -198,13 +205,26 @@ function _handleRequest( req, res, next ) {
     await page.close();
 
     // If after 60 seconds and the browser is not used, close it.
-    setTimeout( function() {
-      if ( Date.now() - browsingStarted >= 60000 ) {
-        req.debug.log( 'closing the browser.' );
-        browser.close(); // not closing the browser instance to reuse it
-        browserWSEndpoint = '';
+    const _limitIdle = 60000;
+    setTimeout( function( thisBrowser, thisKeyQuery ) {
+
+      if ( 'undefined' === typeof startedBrowsers[ thisKeyQuery ] ) {
+        req.debug.log( 'Trying close the browser but it seems already closed.' );
+        return;
       }
-    }, 60000 );
+      if ( Date.now() - startedBrowsers[ thisKeyQuery ] < _limitIdle ) {
+        req.debug.log( 'Not closing the browser as it has still activities.' );
+        return;
+      }
+      if ( 'function' !== typeof thisBrowser[ 'close' ] ) {
+        req.debug.log( 'Trying close the browser but the browser object is gone.', 'type:', typeof thisBrowser );
+        delete browserEndpoints[ thisKeyQuery ];
+      }
+      thisBrowser.close();
+      req.debug.log( 'Closed the browser.' );
+      delete browserEndpoints[ thisKeyQuery ];
+
+    }, _limitIdle, browser, _keyQuery );
 
   }
 
@@ -222,19 +242,8 @@ function _handleRequest( req, res, next ) {
           ? thisBrowserWSEndpoint
           : thisBrowserWSEndpoint + '?--user-data-dir="' + _pathUserDataDir + '"'; // @see https://docs.browserless.io/blog/2019/05/03/improving-puppeteer-performance.html
 
-        req.debug.log( 'args', req.query.args, 'length', req.query.args.length );
-
-        let _browser = await puppeteer.connect({browserWSEndpoint: thisBrowserWSEndpoint } );
-
-        if ( req.query.args.length ) {
-          // @todo store previous args and if they are the same, do not close the browser and reuse it.
-          // This is because launching the browser in a too short period of time, it causes an error saying "Unable to move the cache: Access is denied."
-          await _browser.close();
-          browserWSEndpoint = '';
-          throw new Error( 'The args argument is set so launch a new browser.' );
-        }
         req.debug.log( 'Reusing the existing browser, ws endpoint:', thisBrowserWSEndpoint );
-        return _browser;
+        return await puppeteer.connect({browserWSEndpoint: thisBrowserWSEndpoint } );
 
       } catch (e) {
 
@@ -265,12 +274,15 @@ function _handleRequest( req, res, next ) {
 
         let _args = [...new Set([ ...req.query.args, ..._argsMust ] ) ];
         req.debug.log( 'Browser "args"', _args );
-        return await puppeteer.launch({
+
+        puppeteerExtra.use( pluginStealth() );
+        return await puppeteerExtra.launch({
           headless: true,
           userDataDir: _pathUserDataDir,
           args: _args
         });
       }
+
     }
 
     /**
