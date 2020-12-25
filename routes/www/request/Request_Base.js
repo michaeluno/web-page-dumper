@@ -40,7 +40,10 @@ module.exports = class Request_Base {
    * @private
    */
   async _setCookies( res ) {
-    let _cookies = await this.page.cookies();
+    let _allCookies = await this.page._client.send( 'Network.getAllCookies' );
+    let _cookies = _allCookies.cookies.length
+      ? _allCookies.cookies
+      : await this.page.cookies();
     this.req.debug.log( 'Cookies', _cookies );
     for ( let _cookie of _cookies ){
       // Puppeteer sets `expires` serving as the `maxAge` value indicating how long it lasts. So format it to a date object.
