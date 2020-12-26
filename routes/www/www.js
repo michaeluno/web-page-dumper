@@ -1,4 +1,3 @@
-const puppeteer = require('puppeteer');
 const express = require('express');
 const router  = express.Router();
 const urlModule = require( 'url' );
@@ -254,7 +253,7 @@ function _handleRequest( req, res, next ) {
           : thisBrowserWSEndpoint + '?--user-data-dir="' + _pathUserDataDir + '"'; // @see https://docs.browserless.io/blog/2019/05/03/improving-puppeteer-performance.html
 
         req.debug.log( 'Reusing the existing browser, ws endpoint:', thisBrowserWSEndpoint );
-        return await puppeteer.connect({browserWSEndpoint: thisBrowserWSEndpoint } );
+        return await puppeteerExtra.connect({browserWSEndpoint: thisBrowserWSEndpoint } );
 
       } catch (e) {
 

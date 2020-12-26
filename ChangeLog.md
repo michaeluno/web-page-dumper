@@ -1,5 +1,8 @@
 # Change Log
 
+#### 1.1.1
+- Fixed a bug that reusing existing browsers was not handled properly, since 1.1.0. 
+
 #### 1.1.0
 - Added the `proxy` parameter.
 - Fixed an issue that setting the `args` parameter did not take effect if a browser instance exists with previous requests.
