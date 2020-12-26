@@ -1,6 +1,7 @@
 # Change Log
 
-#### 1.0.5
+#### 1.1.0
+- Added the `proxy` parameter.
 - Fixed an issue that setting the `args` parameter did not take effect if a browser instance exists with previous requests.
 - Fixed a bug that transferring cookies was partial.
 

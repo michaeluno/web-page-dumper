@@ -11,6 +11,7 @@ const Debug = require( '../../utility/debug.js' );
 
 const puppeteerExtra  = require( 'puppeteer-extra' );
 const pluginStealth   = require( 'puppeteer-extra-plugin-stealth' );
+const useProxy        = require( 'puppeteer-page-proxy' );
 
 const Request_json    = require( './request/Request_json' );
 const Request_debug   = require( './request/Request_debug' );
@@ -119,6 +120,11 @@ function _handleRequest( req, res, next ) {
     // PDF
     query.pdf                 = query.pdf || {};
 
+    // Proxy
+    query.proxy               = 'undefined' === typeof query.proxy
+      ? null
+      : ( query.proxy.includes("://" ) ? query.proxy : null );
+
     return query;
   }
   /**
@@ -137,7 +143,7 @@ function _handleRequest( req, res, next ) {
       'args': req.query.args
     } );
     startedBrowsers[ _keyQuery ] = Date.now();
-    console.log( 'key query: ', _keyQuery );
+    req.debug.log( 'key query: ', _keyQuery );
     let browser  = await _getBrowser( browserEndpoints[ _keyQuery ], req );
     browserEndpoints[ _keyQuery ] = browser.wsEndpoint();
     // Incognito mode - deprecated as a new tab cannot be created but it forces to open a new window
@@ -147,6 +153,11 @@ function _handleRequest( req, res, next ) {
 
     let page    = await browser.newPage();
     // const [page] = await browser.pages(); // uses the tab already opened when launched
+
+    if ( req.query.proxy ) {
+      req.debug.log( 'Using a proxy: ', req.query.proxy );
+    }
+    await useProxy( page, req.query.proxy );
 
     // Use cache
     req.debug.log( 'use cache:', req.query.cache );

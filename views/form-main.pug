@@ -64,10 +64,10 @@ form( method="get" name="main" action="/www/" )
       label.label.has-text-weight-semibold= labels.userAgent
       div.control
         input.input.is-info.is-small( type="text" name="user_agent" placeholder=labels.userAgent )
-    //div.field
-    //  label.label.has-text-weight-semibold= labels.proxy
-    //  div.control
-    //    input.input.is-info.is-small( type="url" name="proxy" placeholder=labels.proxy )
+    div.field
+      label.label.has-text-weight-semibold= labels.proxy
+      div.control
+        input.input.is-info.is-small( type="url" name="proxy" placeholder="scheme://username:password@ipaddress:port e.g. socks4://127.0.0.1:1080" )
     div.field
       label.label.has-text-weight-semibold= labels.basicAuthentication
       div.field.has-addons

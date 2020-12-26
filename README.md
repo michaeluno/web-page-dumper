@@ -23,7 +23,7 @@ Only the `url` parameter is required. The rest is optional.
 
 For boolean values, use `1` or `0` instead of `true` or `false`.
 
-#### <required, string> `url`
+#### (required, string) `url`
 A _URL-encoded_ URL to fetch. 
 
 > Note: It is important to pass an URL-encoded value especially when the URL includes query parameters not to mix with the current parameters and the requested URL parameters.   
@@ -201,10 +201,20 @@ http(s)://{app address}/www/?url=https%3A%2F%2Fgoogle.com%2F&output=jpg&headers[
 #### (array) `args`
 
 The `args` argument for the `puppeteer.launch()` method. For accepted arguments, please see [here](https://peter.sh/experiments/chromium-command-line-switches/).
- 
+
 e.g.
 ```
 http(s)://{app address}/www/?url=https%3A%2F%2Fgoogle.com%2F&output=jpg&args[]=--lang=en-GB
+```
+
+#### (string) `proxy`
+
+Format: `scheme://username:password@ipaddress:port`
+
+For example, to set `socks4://127.0.0.1:1080`,
+
+```
+http(s)://{app address}/www/?url=https%3A%2F%2Fwww.google.com&output=png&proxy=socks4%3A%2F%2F127.0.0.1:1080
 ```
 
 ## Deployment to Heroku
