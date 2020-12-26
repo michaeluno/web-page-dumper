@@ -142,7 +142,6 @@ function _handleRequest( req, res, next ) {
       'args': req.query.args
     } );
     startedBrowsers[ _keyQuery ] = Date.now();
-    req.debug.log( 'key query: ', _keyQuery );
     let browser  = await _getBrowser( browserEndpoints[ _keyQuery ], req );
     browserEndpoints[ _keyQuery ] = browser.wsEndpoint();
     // Incognito mode - deprecated as a new tab cannot be created but it forces to open a new window

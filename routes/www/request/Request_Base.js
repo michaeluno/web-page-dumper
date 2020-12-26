@@ -44,7 +44,7 @@ module.exports = class Request_Base {
     let _cookies = _allCookies.cookies.length
       ? _allCookies.cookies
       : await this.page.cookies();
-    this.req.debug.log( 'Cookies', _cookies );
+    // this.req.debug.log( 'Cookies', _cookies );
     for ( let _cookie of _cookies ){
       // Puppeteer sets `expires` serving as the `maxAge` value indicating how long it lasts. So format it to a date object.
       if ( _cookie.expires && 'number' === typeof _cookie.expires ) {
