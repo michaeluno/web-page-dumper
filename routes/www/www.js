@@ -206,13 +206,8 @@ function _handleRequest( req, res, next ) {
     req.debug.log( 'Elapsed:', Date.now() - startedBrowsers[ _keyQuery ], 'ms' );
 
     await _processRequest( urlThis, page, req, res, responseHTTP, _typeOutput );
-    await page.goto( 'about:blank' );
 
-    // Clear cookies @see https://github.com/puppeteer/puppeteer/issues/5253#issuecomment-688861236
-    const client = await page.target().createCDPSession();
-    await client.send('Network.clearBrowserCookies' );
-
-    await page.close();
+    _closePageLater( page, 100 );
 
     // If after 60 seconds and the browser is not used, close it.
     const _limitIdle = 60000;
@@ -237,6 +232,27 @@ function _handleRequest( req, res, next ) {
     }, _limitIdle, browser, _keyQuery );
 
   }
+    /**
+     * Let the HTTP request responded to the client.
+     * In the meantime, close the page in the background.
+     * @param page
+     * @param timeout
+     * @private
+     */
+    function _closePageLater( page, timeout ) {
+      (async () => {
+        await new Promise(resolve => {
+          setTimeout( resolve, timeout );
+        })
+        // Clear cookies @see https://github.com/puppeteer/puppeteer/issues/5253#issuecomment-688861236
+        const client = await page.target().createCDPSession();
+        await client.send( 'Network.clearBrowserCookies' );
+
+        // await page.goto( 'about:blank' );
+        console.log( 'Closing the page:', await page.url() );
+        await page.close();
+      })();
+    }
 
     async function _getBrowser( thisBrowserWSEndpoint, req ) {
 
