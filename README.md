@@ -217,6 +217,37 @@ For example, to set `socks4://127.0.0.1:1080`,
 http(s)://{app address}/www/?url=https%3A%2F%2Fwww.google.com&output=png&proxy=socks4%3A%2F%2F127.0.0.1:1080
 ```
 
+#### (array) `block`
+Blocks specified resources. This has the following sub argument keys.
+- types
+- urls
+
+##### (array) `types` 
+Specifies the types to block.
+
+Accepted values:
+- `image`
+- `stylesheet`
+- `font`
+- `script` 
+
+By default, when the output type is `html' or `json`, and no `block` value is passed, `image`, `stylesheet`, and `font` are added by default.  
+
+```
+http(s)://{app address}/www/?url=https%3A%2F%2Fwww.amazon.com%2Fgp%2Fgoldbox&output=png&block[types][]=script
+```
+
+##### (array) `urls`
+Specifies the part of URLs to block. Use asterisk (`*`) to match any characters.
+
+Such as: 
+- `*.optimizely.com`
+- `googleadservices.com`
+
+```
+http(s)://{app address}/www/?url=https%3A%2F%2Fwww.amazon.com%2Fgp%2Fgoldbox&output=png&block[urls][]=googleadservices.com
+```
+
 ## Deployment to Heroku
 This web application is meant to run on [Heroku](https://www.heroku.com/). 
 

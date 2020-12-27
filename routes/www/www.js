@@ -124,8 +124,25 @@ function _handleRequest( req, res, next ) {
       ? null
       : ( query.proxy.includes("://" ) ? query.proxy : null );
 
+    // Block resources
+    query.block = _getBlockResources( query.output, query );
+
     return query;
   }
+    function _getBlockResources( outputType, query ) {
+
+      let _block   = 'undefined' === typeof query.block ? { 'types': [], 'urls': [] } : query.block;
+      _block.types = 'undefined' === typeof _block.types ? [] : _block.types;
+      _block.urls  = 'undefined' === typeof _block.urls  ? [] : _block.urls;
+
+      // Supported types: stylesheet, image, font, script.
+      // Unsupported: document, media, texttrack, xhr, fetch, eventsource, websocket, manifest, other.
+      if ( [ 'html', 'htm', 'json' ].includes( outputType ) ) {
+        _block.types = [ 'stylesheet', 'image', 'font' ];
+      }
+      return _block;
+
+    }
   /**
    * Display the fetched contents
    * @param urlThis
@@ -139,7 +156,7 @@ function _handleRequest( req, res, next ) {
     let _typeOutput = req.query.output;
 
     let _keyQuery = hash( {
-      'args': req.query.args
+      'args': req.query.args,
     } );
     startedBrowsers[ _keyQuery ] = Date.now();
     let browser  = await _getBrowser( browserEndpoints[ _keyQuery ], req );
@@ -152,6 +169,7 @@ function _handleRequest( req, res, next ) {
     let page    = await browser.newPage();
     // const [page] = await browser.pages(); // uses the tab already opened when launched
 
+    // Proxy
     if ( req.query.proxy ) {
       req.debug.log( 'Using a proxy: ', req.query.proxy );
     }
@@ -189,6 +207,12 @@ function _handleRequest( req, res, next ) {
     // Additional HTTP headers.
     if ( req.query.headers.length ) {
       await page.setExtraHTTPHeaders( req.query.headers );
+    }
+
+    // Block resources
+    await page._client.send( 'Network.setBlockedURLs', { urls: _getBlockedResources( req.query.block.types, req.query.block.urls ) } );
+    if ( req.query.block.types.includes( 'script' ) ) {
+      await page.setJavaScriptEnabled( false );
     }
 
     // Request
@@ -231,6 +255,43 @@ function _handleRequest( req, res, next ) {
     }, _limitIdle, browser, _keyQuery );
 
   }
+    function _getBlockedResources( blockedResourceTypes, blockedURLs ) {
+      const _blockedResources = [
+        // Analytics and other fluff
+        '*.optimizely.com',
+        'everesttech.net',
+        'userzoom.com',
+        'doubleclick.net',
+        'googleadservices.com',
+        'adservice.google.com/*',
+        'connect.facebook.com',
+        'connect.facebook.net',
+        'sp.analytics.yahoo.com',
+        // Assets
+        '*/favicon.ico',
+      ];
+      if ( blockedResourceTypes.includes( 'image' ) ) {
+        _blockedResources.concat( [
+          '.jpg', '.jpeg', '.png', '.svg', '.gif', '.tiff'
+        ] );
+      }
+      if ( blockedResourceTypes.includes( 'script' ) ) {
+        _blockedResources.concat( [
+          '.js',
+        ] );
+      }
+      if ( blockedResourceTypes.includes( 'font' ) ) {
+        _blockedResources.concat( [
+          '.woff', '.otf', '.woff2', '.svg', '.ttf', '.eot'
+        ] );
+      }
+      if ( blockedResourceTypes.includes( 'stylesheet' ) ) {
+        _blockedResources.concat( [
+          '.css',
+        ] );
+      }
+      return _blockedResources.concat( blockedURLs );
+    }
     /**
      * Let the HTTP request responded to the client.
      * In the meantime, close the page in the background.
@@ -280,7 +341,6 @@ function _handleRequest( req, res, next ) {
           '--no-sandbox' // to run on Heroku @see https://elements.heroku.com/buildpacks/jontewks/puppeteer-heroku-buildpack
 
           // To save CPU usage, @see https://stackoverflow.com/a/58589026
-          // '--no-sandbox',
           // '--disable-setuid-sandbox',
           // '--disable-dev-shm-usage',
           // '--disable-accelerated-2d-canvas',
@@ -301,11 +361,13 @@ function _handleRequest( req, res, next ) {
         req.debug.log( 'Browser "args"', _args );
 
         puppeteerExtra.use( pluginStealth() );
+
         return await puppeteerExtra.launch({
           headless: true,
-          userDataDir: _pathUserDataDir,
-          args: _args
+          // userDataDir: _pathUserDataDir, // @deprecated 1.1.1 Causes an error "Unable to move the cache: Access is denied" when multiple browsers try to launch simultaneously.
+          args: _args,
         });
+
       }
 
     }

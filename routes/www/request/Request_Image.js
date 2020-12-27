@@ -26,7 +26,9 @@ module.exports = class Request_Image extends Request_Base {
     let _screenshot = this._getScreenShotOptions( this.req, this.bodyWidth, this.bodyHeight );
     this.req.debug.log( 'Screenshot options:', _screenshot );
 
-    await this._autoScroll( this.page );
+    if ( ! this.req.query.block.types.includes( 'script' ) ) {
+      await this._autoScroll( this.page );
+    }
     let _img = await this.page.screenshot( _screenshot );
 
     if ( 'base64' !== _screenshot.encoding ) {

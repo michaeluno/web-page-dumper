@@ -1,6 +1,7 @@
 # Change Log
 
-#### 1.1.1
+#### 1.2.0
+- Deprecated a custom location of user profile data.
 - Optimized the response performance by closing the page after finishing the response.  
 - Fixed a bug that reusing existing browsers was not handled properly, since 1.1.0. 
 
