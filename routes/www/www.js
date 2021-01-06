@@ -172,6 +172,7 @@ function _handleRequest( req, res, next ) {
     // Proxy
     if ( req.query.proxy ) {
       req.debug.log( 'Using a proxy: ', req.query.proxy );
+      await useProxy( page, req.query.proxy );
     }
     await useProxy( page, req.query.proxy );
 
