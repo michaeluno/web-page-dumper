@@ -1,0 +1,98 @@
+extends index
+
+block content-main
+  h1.title.is-2 Resources
+  h1.title.is-3 System
+  table.table.is-bordered.is-striped.is-hoverable
+    thread
+      tr
+        th Uptime
+    tbody.has-text-right
+      tr
+        td
+          span.m-3= _system.uptime
+  h2.title.is-3 CPU
+  table.table.is-bordered.is-striped.is-hoverable
+    thread
+      tr
+        th Count
+    tbody.has-text-right
+      tr
+        td
+          span.m-3= cpu.count
+
+  h2.title.is-3 System Memory
+  table.table.is-bordered.is-striped.is-hoverable
+    thread
+      tr
+        th Free
+        th Free (%)
+        th Total
+    tbody.has-text-right
+      tr
+        td
+          span.m-3= memory.free
+        td
+          span.m-3= memory.freePercentage + "%"
+        td
+          span.m-3= memory.total
+  h2.title.is-3 Node.js Process
+  table.table.is-bordered.is-striped.is-hoverable
+    thead
+      tr
+        th Title
+        th PID
+        th Version
+        th Memory Resident Set
+        th Memory Total Heap
+        th Memory Used
+        th Memory External
+        th Uptime
+    tbody.has-text-right
+      tr
+        td.has-text-left
+          span.m-3= process.title
+        td
+          span.m-3= process.pid
+        td
+          span.m-3= process.version
+        td
+          span.m-3= process.memory.rss
+        td
+          span.m-3= process.memory.heapTotal
+        td
+          span.m-3= process.memory.heapUsed
+        td
+          span.m-3= process.memory.external
+        td
+          span.m-3= process.uptime
+  h2.title.is-3 Process List
+  p.mb-2= "Chrome Processes: " + chrome.count
+  table.table.is-bordered.is-striped.is-hoverable
+    thead
+      tr
+        th Name
+        th PID
+        th PPID
+        th UID
+        th CPU
+        th Memory
+        th(colspan="3") CMD
+    tbody.has-text-right
+      each process, index in psList
+        tr
+          td.has-text-left
+            span.m-3= process.name
+          td
+            span.m-3= process.pid
+          td
+            span.m-3= process.ppid
+          td
+            span.m-3= process.uid
+          td
+            span.m-3= process.cpu
+          td
+            span.m-3= process.memory
+          td(colspan="3")
+            span.m-3= process.cmd
+

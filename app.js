@@ -128,6 +128,7 @@ app.use( '*', require( './routes/any' ) );
 app.use( '/', routerIndex );
 app.use( '/www', routerWWW );
 app.use( '/nodejsinfo', require( './routes/nodejsinfo' ) );
+app.use( '/process', require( './routes/process' ) );
 app.use( '/usage', require( './routes/usage' ) );
 
 // catch 404 and forward to error handler

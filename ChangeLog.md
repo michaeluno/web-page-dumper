@@ -1,5 +1,8 @@
 # Change Log
 
+#### 1.3.0
+- Added the `process` route.
+
 #### 1.2.0
 - Deprecated a custom location of user profile data.
 - Optimized the response performance by closing the page after finishing the response.  
