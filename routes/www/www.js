@@ -174,7 +174,6 @@ function _handleRequest( req, res, next ) {
       req.debug.log( 'Using a proxy: ', req.query.proxy );
       await useProxy( page, req.query.proxy );
     }
-    await useProxy( page, req.query.proxy );
 
     // Use cache
     req.debug.log( 'use cache:', req.query.cache );
@@ -247,10 +246,12 @@ function _handleRequest( req, res, next ) {
       }
       if ( 'function' !== typeof thisBrowser[ 'close' ] ) {
         req.debug.log( 'Trying close the browser but the browser object is gone.', 'type:', typeof thisBrowser );
+        delete startedBrowsers[ thisKeyQuery ];
         delete browserEndpoints[ thisKeyQuery ];
       }
       thisBrowser.close();
       req.debug.log( 'Closed the browser.' );
+      delete startedBrowsers[ thisKeyQuery ];
       delete browserEndpoints[ thisKeyQuery ];
 
     }, _limitIdle, browser, _keyQuery );
