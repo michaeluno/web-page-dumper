@@ -3,7 +3,6 @@ const router  = express.Router();
 const path = require('path');
 const hash = require( 'object-hash' ); // @see https://www.npmjs.com/package/object-hash
 const fse = require( 'fs-extra' );
-const Debug = require( '../../utility/debug.js' );
 
 const puppeteerExtra  = require( 'puppeteer-extra' );
 const pluginStealth   = require( 'puppeteer-extra-plugin-stealth' );
@@ -34,7 +33,6 @@ module.exports = router;
 
 function _handleRequest( req, res, next ) {
 
-  req.debug    = new Debug;
   let _urlThis = 'undefined' !== typeof req.query.url && req.query.url
     ? decodeURI( req.query.url ).replace(/\/$/, "") // trim trailing slashes
     : '';

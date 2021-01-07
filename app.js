@@ -124,6 +124,14 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(upload.array());
 app.use(express.static('public'));
 
+
+// Custom properties
+const Debug = require( './utility/debug.js' );
+app.use(function (req, res, next) {
+  req.debug = new Debug;
+  next();
+});
+
 app.use( '*', require( './routes/any' ) );
 app.use( '/', routerIndex );
 app.use( '/www', routerWWW );
