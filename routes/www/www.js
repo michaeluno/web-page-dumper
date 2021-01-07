@@ -1,11 +1,8 @@
 const express = require('express');
 const router  = express.Router();
-const urlModule = require( 'url' );
-const fs = require("fs");
 const path = require('path');
 const hash = require( 'object-hash' ); // @see https://www.npmjs.com/package/object-hash
 const fse = require( 'fs-extra' );
-const cacheLifespan = 86400;
 const Debug = require( '../../utility/debug.js' );
 
 const puppeteerExtra  = require( 'puppeteer-extra' );
@@ -23,13 +20,6 @@ const Request_png     = require( './request/Request_png' );
 let browserEndpoints = {};
 let startedBrowsers  = {};
 
-/**
- * Stores flags indicating whether a URL request is handled or not.
- * @type {{}}
- * @deprecated Not used anymore as the cache mechanism are deprecated. Also, declaring it in this scope is somewhat error prone as it will be continuously available in different requests.
- */
-let requested = {};
-
 router.get('/', function(req, res, next ) {
   _handleRequest( req, res, next );
 });
@@ -44,7 +34,6 @@ module.exports = router;
 
 function _handleRequest( req, res, next ) {
 
-  requested    = {};
   req.debug    = new Debug;
   let _urlThis = 'undefined' !== typeof req.query.url && req.query.url
     ? decodeURI( req.query.url ).replace(/\/$/, "") // trim trailing slashes
@@ -76,11 +65,6 @@ function _handleRequest( req, res, next ) {
     query.cache    = 'undefined' === typeof query.cache
       ? true
       : !! parseInt( query.cache );
-
-    // @deprecated
-    // query.cache_duration      = 'undefined' === typeof query.cache_duration
-    //     ? cacheLifespan
-    //     : ( parseInt( query.cache_duration ) || cacheLifespan );
 
     query.timeout             = 'undefined' === typeof query.timeout ? 30000 : parseInt( query.timeout );
     query.reload              = !! parseInt( query.reload );
@@ -189,10 +173,6 @@ function _handleRequest( req, res, next ) {
     if ( req.query.username ) {
       await page.authenticate({ 'username': req.query.username , 'password': req.query.password } );
     }
-
-    // Caching
-    // await _disableHTMLResources( page, req, _typeOutput, urlThis );
-    // await _handleCaches( page, req ); // @deprecated
 
     // Debug
     // page.on( 'response', async _response => {
@@ -374,159 +354,6 @@ function _handleRequest( req, res, next ) {
 
     }
 
-    /**
-     *
-     * @param   page
-     * @param   req
-     * @param   typeOutput
-     * @param   urlRequest
-     * @returns {Promise<void>}
-     * @private
-     * @see     https://qiita.com/unhurried/items/56ea099c895fa437b56e
-     * @see     https://github.com/puppeteer/puppeteer/issues/5334
-     */
-    async function _disableHTMLResources( page, req, typeOutput, urlRequest ) {
-
-      await page.setRequestInterception( true );
-
-      let _imageExtensions = [ 'pdf', 'jpg', 'jpeg', 'png' ];
-      if ( _imageExtensions.includes( typeOutput ) ) {
-        await page.setRequestInterception( false );
-        return;
-      }
-      let _urlParsedMain = urlModule.parse( urlRequest );
-      page.on( 'request', async request => {
-
-        let _urlParsedThis = urlModule.parse( request.url() );
-
-        // Resources from 3rd party domains
-        // @deprecated Redirected responses become unavailable such as entering https://amazon.com which results in https://www.amazon.com
-        // let _hostThis      = _urlParsedThis.hostname;
-        // if ( ! _hostThis.hostname.includes( _urlParsedMain ) ) {
-        //   debugLog( 'requested host', _urlParsedMain.hostname, 'parsing host', _hostThis );
-        //   requested[ request.url() ] = true;
-        //   request.abort();
-        //   return;
-        // }
-
-        // Images
-        try {
-          switch (await request.resourceType()) {
-            case "image":
-            case "stylesheet":
-            case "font":
-              requested[ request.url() ] = true;
-              await request.abort();
-              break;
-            default:
-              await request.continue();
-              // allows the cache method to handle it
-              break;
-          }
-        } catch ( e ) {
-          req.debug.log( e );
-        }
-
-      } );
-    }
-
-    /**
-     * @param page
-     * @param req
-     * @returns {Promise<void>}
-     * @private
-     */
-    async function _handleCaches( page, req ) {
-
-      if ( ! req.query.cache ) {
-        req.debug.log( 'cache is disabled' );
-        return;
-      }
-
-      await page.setRequestInterception( true );
-
-      let _cacheDuration = req.query.cache_duration;
-
-      /**
-       * Sending cached responses.
-       * @see https://stackoverflow.com/a/58639496
-       * @see https://github.com/puppeteer/puppeteer/issues/3118#issuecomment-643531996
-       */
-      page.on( 'request', async request => {
-
-        // Already handled in other callbacks.
-        if ( requested[ await request.url() ] ) {
-          req.debug.log( 'already handled:', await request.url() );
-          return;
-        }
-
-        // Document is often not cached. Other types such as image and font are usually cached.
-        let _resourceType = await request.resourceType();
-        // if ( ! [ 'document' ].includes( _resourceType ) ) {
-        //   await request.continue();
-        //   return;
-        // }
-
-        let _hash = _getCacheHash( await request.url(), _resourceType, await request.method(), req.query );
-        let _cachePath = req.app.get( 'tempDirPathCache' ) + path.sep + _hash + '.dat';
-        let _cachePathContentType = req.app.get( 'tempDirPathCache' ) + path.sep + _hash + '.type.txt';
-
-        requested[ await request.url() ] = true;
-        try {
-          if ( fs.existsSync( _cachePath ) && ! _isCacheExpired( _cachePath, _cacheDuration ) ) {
-            let _contentType = fs.existsSync( _cachePathContentType ) ? await fse.readFile( _cachePathContentType, 'utf8' ) : undefined;
-            req.debug.log( 'using cache:', _resourceType, await request.url() );
-            request.respond({
-                status: 200,
-                contentType: _contentType,
-                body: await fse.readFile( _cachePath )
-            });
-            return;
-          }
-          await request.continue();
-        } catch (err) {
-          req.debug.log( err );
-        }
-
-      });
-
-      /**
-       * Caching responses.
-       */
-      page.on( 'response', async response => {
-
-          // Handle redirects
-          let _status = response.status()
-          if ( ( _status >= 300 ) && ( _status <= 399 ) ) {
-            return;
-          }
-
-          // Save caches
-          let _resourceType = await response.request().resourceType();
-          // if ( ! [ 'document' ].includes( _resourceType ) ) {
-          //   return;
-          // }
-          let _hash         = _getCacheHash( await response.url(), _resourceType, response.method, req.query );
-          let _cachePath   = req.app.get( 'tempDirPathCache' ) + path.sep + _hash + '.dat';
-          if ( ! _isCacheExpired( _cachePath, _cacheDuration ) ) {
-            return;
-          }
-
-          let _cachePathContentType = req.app.get( 'tempDirPathCache' ) + path.sep + _hash + '.type.txt';
-          let _buffer      = await response.buffer();
-          if ( ! _buffer.length ) {
-            return;
-          }
-          req.debug.log( 'save cache', _hash, 'resourceType', await response.request().resourceType(), 'method', response.method, 'url', await response.url() );
-          await fse.outputFile( _cachePath, _buffer );
-          let _contentType = response.contentType ? response.contentType : response.headers()[ 'content-type' ]; // same as headers[ 'Content-Type' ];
-          if ( _contentType ) {
-            await fse.outputFile( _cachePathContentType, _contentType );
-          }
-
-      });
-
-    }
     async function _processRequest( url, page, req, res, responseHTTP, _type ) {
 
       let _factory = {
@@ -543,47 +370,3 @@ function _handleRequest( req, res, next ) {
       await _request.do();
 
     }
-
-  /**
-   *
-   * @param urlResource
-   * @param resourceType Either of the following:
-   * - document
-   * - stylesheet
-   * - image
-   * - media
-   * - font
-   * - script
-   * - texttrack
-   * - xhr
-   * - fetch
-   * - eventsource
-   * - websocket
-   * - manifest
-   * - other
-   * @see   https://github.com/puppeteer/puppeteer/blob/main/docs/api.md#httprequestresourcetype
-   * @param method
-   * @param query
-   * @returns {*}
-   * @private
-   */
-  function _getCacheHash( urlResource, resourceType, method, query ) {
-    let _hashObject  = {
-      url: urlResource,
-    };
-    if ( [ 'document' ].includes( resourceType ) ) {
-      _hashObject[ 'method' ] = method;
-    }
-    return hash( _hashObject );
-  }
-
-  function _isCacheExpired( path, cacheLifetime ) {
-    if ( ! fs.existsSync( path ) ) {
-      return true;
-    }
-    let _stats   = fs.statSync( path );
-    let _mtime   = _stats.mtime;
-    let _seconds = (new Date().getTime() - _stats.mtime) / 1000;
-    // debugLog( 'expired:', _seconds >= cacheLifetime, 'modified time: ', _mtime, `modified ${_seconds} ago` );
-    return _seconds >= cacheLifetime;
-  }
