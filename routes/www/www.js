@@ -1,8 +1,9 @@
 const express = require('express');
 const router  = express.Router();
-const path = require('path');
-const hash = require( 'object-hash' ); // @see https://www.npmjs.com/package/object-hash
-const fse = require( 'fs-extra' );
+const path    = require('path');
+const hash    = require( 'object-hash' ); // @see https://www.npmjs.com/package/object-hash
+const fs      = require('fs');
+const getDate = require( '../../utility/getDate' );
 
 const puppeteerExtra  = require( 'puppeteer-extra' );
 const pluginStealth   = require( 'puppeteer-extra-plugin-stealth' );
@@ -296,7 +297,11 @@ function _handleRequest( req, res, next ) {
 
     async function _getBrowser( thisBrowserWSEndpoint, req ) {
 
-      let _pathUserDataDir = req.app.get( 'tempDirPathUserDataByDay' );
+      let _pathUserDataDir = req.app.get( 'pathDirTempUserData' );
+      let _pathDirUserDataToday = _pathUserDataDir + path.sep + getDate();
+      if ( ! fs.existsSync( _pathDirUserDataToday ) ){
+          fs.mkdirSync( _pathDirUserDataToday, { recursive: true } );
+      }
 
       try {
 
@@ -306,7 +311,7 @@ function _handleRequest( req, res, next ) {
         
         thisBrowserWSEndpoint = thisBrowserWSEndpoint.includes( '--user-data-dir=' )
           ? thisBrowserWSEndpoint
-          : thisBrowserWSEndpoint + '?--user-data-dir="' + _pathUserDataDir + '"'; // @see https://docs.browserless.io/blog/2019/05/03/improving-puppeteer-performance.html
+          : thisBrowserWSEndpoint + '?--user-data-dir="' + _pathDirUserDataToday + '"'; // @see https://docs.browserless.io/blog/2019/05/03/improving-puppeteer-performance.html
 
         req.debug.log( 'Reusing the existing browser, ws endpoint:', thisBrowserWSEndpoint );
         return await puppeteerExtra.connect({browserWSEndpoint: thisBrowserWSEndpoint } );
@@ -316,7 +321,7 @@ function _handleRequest( req, res, next ) {
         req.debug.log( 'Newly launching browser.' );
         let _argsMust = [
           '--start-maximized', // Start in maximized state for screenshots // @see https://github.com/puppeteer/puppeteer/issues/1273#issuecomment-667646971
-          '--disk-cache-dir=' + _pathUserDataDir + path.sep + 'disk-cache',
+          '--disk-cache-dir=' + _pathDirUserDataToday + path.sep + 'disk-cache',
           '--disable-background-networking',
           '--no-sandbox' // to run on Heroku @see https://elements.heroku.com/buildpacks/jontewks/puppeteer-heroku-buildpack
 
@@ -344,7 +349,7 @@ function _handleRequest( req, res, next ) {
 
         return await puppeteerExtra.launch({
           headless: true,
-          // userDataDir: _pathUserDataDir, // @deprecated 1.1.1 Causes an error "Unable to move the cache: Access is denied" when multiple browsers try to launch simultaneously.
+          // userDataDir: _pathDirUserDataToday, // @deprecated 1.1.1 Causes an error "Unable to move the cache: Access is denied" when multiple browsers try to launch simultaneously.
           args: _args,
         });
 

@@ -164,6 +164,6 @@ app.use(function(err, req, res, next) {
 app.use( favicon( path.join( __dirname, 'public', 'images', 'favicon.svg' ) ) );
 
 // Periodical routines.
-cleanUserData( tempDirPathUserData );
+require( './tasks/cleanUserData' )( app.get( 'pathDirTempUserData' ) );
 
 module.exports = app;
