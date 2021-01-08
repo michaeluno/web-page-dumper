@@ -84,22 +84,9 @@ var projectData = {
 app.set( 'config', projectData );
 
 /// Temporary directories
-const tempDirPath = tempDirectory + path.sep + 'web-page-dumper';
-app.set( 'tempDirPath', tempDirPath );
-if ( ! fs.existsSync( tempDirPath ) ){
-    fs.mkdirSync( tempDirPath, { recursive: true } );
-}
-const tempDirPathCache = tempDirPath + path.sep + 'caches';
-app.set( 'tempDirPathCache', tempDirPathCache );
-if ( ! fs.existsSync( tempDirPathCache ) ){
-    fs.mkdirSync( tempDirPathCache, { recursive: true } );
-}
-const tempDirPathUserData = tempDirPath + path.sep + 'user-data' + path.sep + username.sync();
-const tempDirPathUserDataByDay = tempDirPathUserData + path.sep + getDate();
-app.set( 'tempDirPathUserDataByDay', tempDirPathUserDataByDay );
-if ( ! fs.existsSync( tempDirPathUserDataByDay ) ){
-    fs.mkdirSync( tempDirPathUserDataByDay, { recursive: true } );
-}
+const tempDirectory = require('temp-dir');
+const tempDirPath   = tempDirectory + path.sep + 'web-page-dumper';
+require( './app/temp-dirs' )( app, tempDirPath );
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
