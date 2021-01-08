@@ -73,24 +73,8 @@ app.use(function (req, res, next) {
 // Routers
 require( './routes/_route' )( app );
 
-// error handler
-app.use(function(err, req, res, next) {
-
-  // set locals, only providing error in development
-  res.locals.status  = err.status || 500;
-  res.locals.message = 500 === res.locals.status
-    ? 'Internal Server Error'
-    : err.message;
-  res.locals.error   = req.app.get('env') === 'development' ? err : {};
-
-  // render the error page
-  res.status( res.locals.status );
-  res.render( 'error', req.app.get( 'config' ) );
-
-});
-
-// Favicon
-app.use( favicon( path.join( __dirname, 'public', 'images', 'favicon.svg' ) ) );
+// Error handler
+require( './app/errorHandler.js' )( app, tempDirPath );
 
 // Periodical routines.
 require( './tasks/cleanUserData' )( app.get( 'pathDirTempUserData' ) );
