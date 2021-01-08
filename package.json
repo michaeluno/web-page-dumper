@@ -1,7 +1,7 @@
 {
   "name": "web-page-dumper",
   "description": "Dumps web page outputs including JavaScript generated contents.",
-  "version": "1.3.0",
+  "version": "1.3.0b02",
   "url": "https://github.com/michaeluno/web-page-dumper",
   "author": "Michael Uno <michael2@michaeluno.jp> (https://michaeluno.jp/)",
   "license": "MIT",
@@ -43,6 +43,7 @@
     "cookie-parser": "~1.4.4",
     "debug": "~2.6.9",
     "express": "~4.17.0",
+    "express-winston": "^4.0.5",
     "fs-extra": "^9.0.1",
     "http-errors": "~1.6.3",
     "jstransformer-markdown-it": "^2.1.0",
@@ -60,7 +61,9 @@
     "puppeteer-page-proxy": "^1.2.8",
     "serve-favicon": "^2.5.0",
     "temp-dir": "^2.0.0",
-    "username": "^5.1.0"
+    "username": "^5.1.0",
+    "winston": "^3.3.3",
+    "winston-daily-rotate-file": "^4.5.0"
   },
   "devDependencies": {
     "jquery": "^3.5.1",

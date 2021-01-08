@@ -1,6 +1,7 @@
 # Change Log
 
 #### 1.3.0
+- Added the ability to log to files.
 - Added the `process` route.
 
 #### 1.2.0

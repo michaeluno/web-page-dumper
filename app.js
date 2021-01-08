@@ -1,33 +1,16 @@
 // Express generated dependencies
-var createError = require('http-errors');
 var express = require('express');
 var path = require('path');
-var cookieParser = require('cookie-parser');
-var logger = require('morgan');
-var compression = require( 'compression' );
-
-const username = require( 'username' );
-const getDate  = require( './utility/getDate' );
-
-const cleanUserData = require( './tasks/cleanUserData' );
-
-const favicon = require( 'serve-favicon' );
 
 // Additional dependencies
-
-const tempDirectory = require('temp-dir');
-var fs = require('fs');
 
 /// To parse POST
 var bodyParser = require('body-parser');
 var multer = require('multer');
 var upload = multer();
 
-var routerIndex = require( './routes/index' );
-var routerWWW   = require( './routes/www/www.js' );
-// var usersRouter = require('./routes/users'); // @deprecated
-
 var app = express();
+var compression = require( 'compression' );
 app.use(compression({}));
 app.enable( 'trust proxy' );  // for Heroku environments to detect whether the scheme is https or not.
 
@@ -43,14 +26,19 @@ require( './app/temp-dirs' )( app, tempDirPath );
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
 
-app.use(logger('dev'));
+// Logger
+/// Morgan
+require( './log/loggerWinstonForMorgan.js' )( app, tempDirPath );
+/// Browser Activities
+/// Debug Memory Leaks
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+var cookieParser = require('cookie-parser');
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Dependencies to handle forms
-// @see
 /// for parsing application/json
 app.use(bodyParser.json());
 
@@ -61,7 +49,6 @@ app.use(bodyParser.urlencoded({ extended: true }));
 /// for parsing multipart/form-data
 app.use(upload.array());
 app.use(express.static('public'));
-
 
 // Custom properties
 const Debug = require( './utility/debug.js' );
