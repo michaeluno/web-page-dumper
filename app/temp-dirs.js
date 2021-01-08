@@ -13,7 +13,7 @@ module.exports = function( app, pathDirTemp ) {
   app.set( 'pathDirTempUserData', pathDirTempUserData );
 
   const pathDirTempLogs = pathDirTemp + path.sep + 'logs';
-  app.set( 'pathDirTempLogs', pathDirTempUserData );
+  app.set( 'pathDirTempLogs', pathDirTempLogs );
   const pathDirTempLogsRequest = pathDirTempLogs + path.sep + 'request';
   const pathDirTempLogsError = pathDirTempLogs + path.sep + 'error';
   const pathDirTempLogsDebug = pathDirTempLogs + path.sep + 'debug';
