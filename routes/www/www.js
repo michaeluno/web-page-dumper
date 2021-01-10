@@ -144,7 +144,8 @@ function _handleRequest( req, res, next ) {
     } );
     startedBrowsers[ _keyQuery ] = Date.now();
     let browser  = await _getBrowser( browserEndpoints[ _keyQuery ], req );
-    browserEndpoints[ _keyQuery ] = browser.wsEndpoint();
+    browserEndpoints[ _keyQuery ] = await browser.wsEndpoint();
+    req.logger.browser( 'Current Browser Instance: ' + Object.keys( browserEndpoints ).length );
     // Incognito mode - deprecated as a new tab cannot be created but it forces to open a new window
     // let context = await browser.createIncognitoBrowserContext();
     // let page    = await context.newPage();
@@ -233,6 +234,7 @@ function _handleRequest( req, res, next ) {
       req.logger.browser( 'Closed the browser.' );
       delete startedBrowsers[ thisKeyQuery ];
       delete browserEndpoints[ thisKeyQuery ];
+      req.logger.browser( 'Current Browser Instance (after closing the browser): ' + Object.keys( browserEndpoints ).length );
 
     }, _limitIdle, browser, _keyQuery );
 
