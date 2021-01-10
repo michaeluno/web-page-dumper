@@ -44,7 +44,7 @@ module.exports = class Request_Base {
     let _cookies = _allCookies.cookies.length
       ? _allCookies.cookies
       : await this.page.cookies();
-    // this.req.debug.log( 'Cookies', _cookies );
+    // this.req.logger.debug( 'Set Cookies', _cookies );
     for ( let _cookie of _cookies ){
       // Puppeteer sets `expires` serving as the `maxAge` value indicating how long it lasts. So format it to a date object.
       if ( _cookie.expires && 'number' === typeof _cookie.expires ) {
@@ -77,7 +77,7 @@ module.exports = class Request_Base {
     }
     this.res.removeHeader( 'Content-Encoding' ); // "Content-Encoding: gzip" causes a blank page in the browser.
 
-    this.req.debug.log( 'Set Header:', _headerToSend );
+    this.req.logger.debug( 'Set Header', _headerToSend );
 
   }
 

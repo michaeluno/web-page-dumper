@@ -13,7 +13,7 @@ module.exports = class Request_Image extends Request_Base {
 
     this.bodyWidth   = await this.page.evaluate( () => document.body.scrollWidth );
     this.bodyHeight  = await this.page.evaluate( () => document.body.scrollHeight );
-    this.req.debug.log( 'Page document dimensions:', this.bodyWidth, this.bodyHeight );
+    this.req.logger.debug( 'Page document dimensions: ' + this.bodyWidth.toString() + ', ' + this.bodyHeight.toString() );
     await this.page.setViewport( {
       width:  this.bodyWidth,
       height: this.bodyHeight
@@ -24,7 +24,7 @@ module.exports = class Request_Image extends Request_Base {
   async do() {
 
     let _screenshot = this._getScreenShotOptions( this.req, this.bodyWidth, this.bodyHeight );
-    this.req.debug.log( 'Screenshot options:', _screenshot );
+    this.req.logger.debug( 'Screenshot Options', _screenshot );
 
     if ( ! this.req.query.block.types.includes( 'script' ) ) {
       await this._autoScroll( this.page );
@@ -78,8 +78,13 @@ module.exports = class Request_Image extends Request_Base {
       _ssw = Math.min( _ssw, _maxW );
       let _ssh  = _screenshot.clip.height || _maxH;
       _ssh = Math.min( _ssh, _maxH );
-      req.debug.log( 'screenshot height calc', _ssh, _maxH, 'body height', bodyHeight, 'y offset', _ssy, 'document height' );
-      req.debug.log( 'screenshot dimension', _ssx, _ssy, _ssw, _ssh );
+      // req.debug.log( 'screenshot height calc', _ssh, _maxH, 'body height', bodyHeight, 'y offset', _ssy, 'document height' );
+      this.req.logger.debug( 'Screenshot Dimension', {
+        x: _ssx,
+        y: _ssy,
+        w: _ssw,
+        h: _ssh,
+      } );
       _screenshot.clip = {
         x: _ssx,
         y: _ssy,

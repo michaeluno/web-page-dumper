@@ -3,7 +3,7 @@ const createError = require('http-errors');
 module.exports = function( app, pathDirTemp ) {
 
   // Error log
-  require( '../log/loggerError.js' )( app, pathDirTemp );
+  require( './log/loggerError.js' )( app, pathDirTemp );
 
   // Catch 404 and forward to error handler
   app.use(function(req, res, next) {

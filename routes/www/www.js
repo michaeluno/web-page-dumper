@@ -43,13 +43,14 @@ function _handleRequest( req, res, next ) {
   }
 
   req.query = _getQueryFormatted( req.query, req );
-  req.debug.log( 'query', req.query );
+  req.logger.debug( 'query', req.query );
 
   (async () => {
     try {
       await _render( _urlThis, req, res );
     } catch ( e ) {
-      req.debug.log( e );
+      req.logger.error( 'Caught an exception while processing the request.', e );
+      // req.debug.log( e );
       next( e );
     }
   })();
@@ -154,12 +155,12 @@ function _handleRequest( req, res, next ) {
 
     // Proxy
     if ( req.query.proxy ) {
-      req.debug.log( 'Using a proxy: ', req.query.proxy );
+      req.logger.debug( 'Using a proxy: ' + req.query.proxy );
       await useProxy( page, req.query.proxy );
     }
 
     // Use cache
-    req.debug.log( 'use cache:', req.query.cache );
+    req.logger.debug( 'Using cache: ' + ( req.query.cache ).toString() );
     await page.setCacheEnabled( req.query.cache );
     await page._client.send( 'Network.setCacheDisabled', {  // @see https://github.com/puppeteer/puppeteer/issues/2497#issuecomment-509959074
       cacheDisabled: ! req.query.cache
@@ -201,11 +202,11 @@ function _handleRequest( req, res, next ) {
     });
 
     if ( req.query.reload ) {
-      req.debug.log( 'reloading' );
+      req.logger.debug( 'Reloading' );
       responseHTTP = await page.reload({ waitUntil: [ "networkidle0", "networkidle2", "domcontentloaded" ] } );
     }
 
-    req.debug.log( 'Elapsed:', Date.now() - startedBrowsers[ _keyQuery ], 'ms' );
+    req.logger.debug( 'Elapsed: ' + ( Date.now() - startedBrowsers[ _keyQuery ] ).toString() + ' ms' );
 
     await _processRequest( urlThis, page, req, res, responseHTTP, _typeOutput );
 
@@ -216,20 +217,20 @@ function _handleRequest( req, res, next ) {
     setTimeout( function( thisBrowser, thisKeyQuery ) {
 
       if ( 'undefined' === typeof startedBrowsers[ thisKeyQuery ] ) {
-        req.debug.log( 'Trying close the browser but it seems already closed.' );
+        req.logger.browser( 'Trying close the browser but it seems already closed.' );
         return;
       }
       if ( Date.now() - startedBrowsers[ thisKeyQuery ] < _limitIdle ) {
-        req.debug.log( 'Not closing the browser as it has still activities.' );
+        req.logger.browser( 'Not closing the browser as it has still activities.' );
         return;
       }
       if ( 'function' !== typeof thisBrowser[ 'close' ] ) {
-        req.debug.log( 'Trying close the browser but the browser object is gone.', 'type:', typeof thisBrowser );
+        req.logger.browser( 'Trying close the browser but the browser object is gone. type: ' + typeof thisBrowser );
         delete startedBrowsers[ thisKeyQuery ];
         delete browserEndpoints[ thisKeyQuery ];
       }
       thisBrowser.close();
-      req.debug.log( 'Closed the browser.' );
+      req.logger.browser( 'Closed the browser.' );
       delete startedBrowsers[ thisKeyQuery ];
       delete browserEndpoints[ thisKeyQuery ];
 
@@ -313,12 +314,12 @@ function _handleRequest( req, res, next ) {
           ? thisBrowserWSEndpoint
           : thisBrowserWSEndpoint + '?--user-data-dir="' + _pathDirUserDataToday + '"'; // @see https://docs.browserless.io/blog/2019/05/03/improving-puppeteer-performance.html
 
-        req.debug.log( 'Reusing the existing browser, ws endpoint:', thisBrowserWSEndpoint );
+        req.logger.browser( 'Reusing the existing browser, ws endpoint:' + thisBrowserWSEndpoint );
         return await puppeteerExtra.connect({browserWSEndpoint: thisBrowserWSEndpoint } );
 
       } catch (e) {
 
-        req.debug.log( 'Newly launching browser.' );
+        req.logger.browser( 'Newly launching browser.' );
         let _argsMust = [
           '--start-maximized', // Start in maximized state for screenshots // @see https://github.com/puppeteer/puppeteer/issues/1273#issuecomment-667646971
           '--disk-cache-dir=' + _pathDirUserDataToday + path.sep + 'disk-cache',
@@ -340,10 +341,10 @@ function _handleRequest( req, res, next ) {
           // For more options @see https://github.com/puppeteer/puppeteer/issues/824#issue-258832025
         ];
         req.query.args = req.query.args.filter( element => ! element.includes( "--disk-cache-dir=" ) );
-        req.debug.log( 'req.query.args', req.query.args );
+        req.logger.browser( 'req.query.args', req.query.args );
 
         let _args = [...new Set([ ...req.query.args, ..._argsMust ] ) ];
-        req.debug.log( 'Browser "args"', _args );
+        req.logger.browser( 'Browser "args"', _args );
 
         puppeteerExtra.use( pluginStealth() );
 

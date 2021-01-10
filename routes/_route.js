@@ -10,6 +10,7 @@ module.exports = function( app ) {
   app.use( '/process', require( './process' ) );
   app.use( '/usage', require( './usage' ) );
   app.use( '/error', require( './error.js' ) );
+  app.use( '/log', require( './log.js' ) );
   // var usersRouter = require('./users'); // @deprecated
 
   // Favicon

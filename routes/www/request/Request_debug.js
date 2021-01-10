@@ -14,8 +14,8 @@ module.exports = class Request_debug extends Request_Image {
 
     let _config = this.req.app.get( 'config' );
 
-    this.req.debug.log( 'HTTP Version:', await this.page.evaluate( () => performance.getEntries()[0].nextHopProtocol ) );
-    this.req.debug.log( 'HTTP Status Code:', await this.responseHTTP.status() );
+    this.req.logger.debug( 'HTTP Version: ' + ( await this.page.evaluate( () => performance.getEntries()[0].nextHopProtocol ) ).toString() );
+    this.req.logger.debug( 'HTTP Status Code: ' + ( await this.responseHTTP.status() ).toString() );
     this.res.locals.title = 'Debug Info - ' + _config.project.name;
     let _debug = {
       log: this.req.debug.entries

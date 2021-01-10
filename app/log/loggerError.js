@@ -3,6 +3,16 @@ require('winston-daily-rotate-file');
 var expressWinston = require('express-winston');
 const fs = require( 'fs' );
 
+const formatMessage = winston.format.printf(info => {
+  let _splat = undefined === info.splat ? ' ' : info.splat + ' ';
+  let _label = undefined === info.label ? ' ' : info.label + ': ';
+  let _level = undefined === info.level ? ' ' : info.level.trim() + ': ';
+  let _stack = undefined === info.meta.stack
+    ? ''
+    : info.meta.stack;
+  return `[${info.timestamp}]${_label}${_level}${info.message}${_splat}\n${_stack}`;
+});
+
 module.exports = function( app, pathDirTemp ) {
 
   let _pathDirLog = pathDirTemp + '/logs/error';
@@ -15,18 +25,12 @@ module.exports = function( app, pathDirTemp ) {
     transports: [
       new winston.transports.Console({
         format: winston.format.combine(
+          winston.format.colorize(),
           winston.format.timestamp({
             format: 'YYYY-MM-DD HH:mm:ss'
           }),
           //winston.format.printf(info => `[${info.timestamp}] ${info.level}: ${info.message}`+(info.splat!==undefined?`${info.splat}`:" "))
-          winston.format.printf(info => {
-            let _splat = undefined === info.splat ? ' ' : info.splat + ' ';
-            let _label = undefined === info.label ? ' ' : info.label + ': ';
-            let _stack  = undefined === info.meta.stack
-              ? ''
-              : info.meta.stack;
-            return `[${info.timestamp}]${_label}${info.level}: ${info.message}${_splat}\n${_stack}`;
-          })
+          formatMessage
         )
       }),
       new winston.transports.DailyRotateFile({
@@ -38,11 +42,17 @@ module.exports = function( app, pathDirTemp ) {
           filename: `${_pathDirLog}/%DATE%.log`,
           prepend: true,
           json: false,
-          level: 'info'
+          level: 'info',
+          format: winston.format.combine(
+            winston.format.timestamp({
+              format: 'YYYY-MM-DD HH:mm:ss'
+            }),
+            //winston.format.printf(info => `[${info.timestamp}] ${info.level}: ${info.message}`+(info.splat!==undefined?`${info.splat}`:" "))
+            formatMessage
+          )
       })
     ],
     format: winston.format.combine(
-      winston.format.colorize(),
       winston.format.json()
     ),
     meta: false, // optional: control whether you want to log the meta data about the request (default to true)
@@ -53,14 +63,4 @@ module.exports = function( app, pathDirTemp ) {
   });
 
   app.use( loggerErrorWinston );
-  //   app.use(expressWinston.errorLogger({
-  //     transports: [
-  //       new winston.transports.Console()
-  //     ],
-  //     format: winston.format.combine(
-  //       winston.format.colorize(),
-  //       winston.format.json()
-  //     )
-  //   }));
-
 };

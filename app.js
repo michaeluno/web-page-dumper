@@ -28,7 +28,7 @@ app.set('view engine', 'pug');
 
 // Logger
 /// Morgan
-require( './log/loggerWinstonForMorgan.js' )( app, tempDirPath );
+require( './app/log/loggerWinstonForMorgan.js' )( app, tempDirPath );
 /// Browser Activities
 /// Debug Memory Leaks
 
