@@ -139,9 +139,13 @@ function _handleRequest( req, res, next ) {
 
     let _typeOutput = req.query.output;
 
+    let _keyQueryDefault = hash({
+      'args': [],
+    })
     let _keyQuery = hash( {
       'args': req.query.args,
     } );
+
     startedBrowsers[ _keyQuery ] = Date.now();
     let browser  = await _getBrowser( browserEndpoints[ _keyQuery ], req );
     browserEndpoints[ _keyQuery ] = await browser.wsEndpoint();
@@ -213,32 +217,38 @@ function _handleRequest( req, res, next ) {
 
     _closePageLater( page, 100 );
 
-    // If after 60 seconds and the browser is not used, close it.
-    const _limitIdle = 60000;
-    setTimeout( function( thisBrowser, thisKeyQuery ) {
-
-      if ( 'undefined' === typeof startedBrowsers[ thisKeyQuery ] ) {
-        req.logger.browser( 'Trying close the browser but it seems already closed.' );
-        return;
-      }
-      if ( Date.now() - startedBrowsers[ thisKeyQuery ] < _limitIdle ) {
-        req.logger.browser( 'Not closing the browser as it has still activities.' );
-        return;
-      }
-      if ( 'function' !== typeof thisBrowser[ 'close' ] ) {
-        req.logger.browser( 'Trying close the browser but the browser object is gone. type: ' + typeof thisBrowser );
-        delete startedBrowsers[ thisKeyQuery ];
-        delete browserEndpoints[ thisKeyQuery ];
-      }
-      thisBrowser.close();
-      req.logger.browser( 'Closed the browser.' );
-      delete startedBrowsers[ thisKeyQuery ];
-      delete browserEndpoints[ thisKeyQuery ];
-      req.logger.browser( 'Current Browser Instance (after closing the browser): ' + Object.keys( browserEndpoints ).length );
-
-    }, _limitIdle, browser, _keyQuery );
+    if ( _keyQueryDefault !== _keyQuery ) {
+      _closeBrowserLater( browser, _keyQuery, req, 60000 );
+    }
 
   }
+    function _closeBrowserLater( browser, _keyQuery, req, _limitIdle ) {
+
+      setTimeout( function( thisBrowser, thisKeyQuery ) {
+
+        if ( 'undefined' === typeof startedBrowsers[ thisKeyQuery ] ) {
+          req.logger.browser( 'Trying close the browser but it seems already closed.' );
+          return;
+        }
+        if ( Date.now() - startedBrowsers[ thisKeyQuery ] < _limitIdle ) {
+          req.logger.browser( 'Not closing the browser as it has still activities.' );
+          return;
+        }
+        if ( 'function' !== typeof thisBrowser[ 'close' ] ) {
+          req.logger.browser( 'Trying close the browser but the browser object is gone. type: ' + typeof thisBrowser );
+          delete startedBrowsers[ thisKeyQuery ];
+          delete browserEndpoints[ thisKeyQuery ];
+        }
+        thisBrowser.close();
+        req.logger.browser( 'Closed the browser.' );
+        delete startedBrowsers[ thisKeyQuery ];
+        delete browserEndpoints[ thisKeyQuery ];
+        req.logger.browser( 'Current Browser Instance (after closing the browser): ' + Object.keys( browserEndpoints ).length );
+
+      }, _limitIdle, browser, _keyQuery );
+
+    }
+
     function _getBlockedResources( blockedResourceTypes, blockedURLs ) {
       const _blockedResources = [
         // Analytics and other fluff
