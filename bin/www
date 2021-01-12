@@ -24,10 +24,24 @@ var server = http.createServer(app);
 /**
  * Listen on provided port, on all network interfaces.
  */
-app.loggerWinston.debug( 'Starting the program.' );
+app.loggerWinston.debug( 'Starting the program on port ' + port );
 server.listen(port);
 server.on('error', onError);
 server.on('listening', onListening);
+
+/**
+ * Make a request to the self server so that the initial browser instance will be created
+ */
+const _httpOptions = {
+  host: server.address().address || '127.0.0.1',
+  path: '/www/?url=https://www.google.com'
+};
+if ( port ) {
+  _httpOptions.port = port;
+}
+app.loggerWinston.debug( 'Create an initial browser.', _httpOptions );
+http.get( _httpOptions );
+
 
 /**
  * Normalize a port into a number, string, or false.
