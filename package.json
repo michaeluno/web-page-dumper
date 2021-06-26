@@ -1,7 +1,7 @@
 {
   "name": "web-page-dumper",
   "description": "Dumps web page outputs including JavaScript generated contents.",
-  "version": "1.3.0",
+  "version": "1.3.2",
   "url": "https://github.com/michaeluno/web-page-dumper",
   "author": "Michael Uno <michael2@michaeluno.jp> (https://michaeluno.jp/)",
   "license": "MIT",
@@ -37,7 +37,7 @@
   ],
   "dependencies": {
     "body-parser": "^1.19.0",
-    "cheerio": "^1.0.0-rc.3",
+    "cheerio": "^1.0.0-rc.10",
     "clean-css": ">=4.1.11",
     "compression": "^1.7.4",
     "cookie-parser": "~1.4.4",
@@ -54,7 +54,7 @@
     "object-hash": "^2.0.3",
     "os-utils": "0.0.14",
     "ps-list": "^7.2.0",
-    "pug": "2.0.0-beta11",
+    "pug": "^3.0.2",
     "puppeteer": "^5.5.0",
     "puppeteer-extra": "^3.1.15",
     "puppeteer-extra-plugin-stealth": "^2.6.5",
