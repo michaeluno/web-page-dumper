@@ -1,5 +1,8 @@
 # Change Log
 
+#### 1.3.2
+- Updated dependencies for security.
+
 #### 1.3.1
 - Changed the browser to open at lease one instance always. 
 
