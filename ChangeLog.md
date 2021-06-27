@@ -1,5 +1,8 @@
 # Change Log
 
+#### 1.4.0
+- Optimized for memory usage.
+
 #### 1.3.2
 - Updated dependencies for security.
 
