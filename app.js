@@ -4,6 +4,9 @@ var path = require('path');
 
 // Additional dependencies
 
+/// Environment variables
+require( 'dotenv' ).config( {path: __dirname + '/.env' } );
+
 /// To parse POST
 var bodyParser = require('body-parser');
 var multer = require('multer');

@@ -1,6 +1,7 @@
 # Change Log
 
 #### 1.4.0
+- Added the ability to set log route with an environment variable.
 - Optimized for memory usage.
 
 #### 1.3.2
