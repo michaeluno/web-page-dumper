@@ -248,6 +248,64 @@ Such as:
 http(s)://{app address}/www/?url=https%3A%2F%2Fwww.amazon.com%2Fgp%2Fgoldbox&output=png&block[urls][]=googleadservices.com
 ```
 
+### Logging
+
+#### Enabling Log Pages
+To enable the access to the app's log, you need to set an environment variable of `LOG_ROUTE` with a value serving as the root name (part of URL path). 
+
+There are mainly two options: 
+
+- **a)** Create a file named `.env` with the following entry in the project root directory (the same location as app.js).
+
+```
+#LOGGING
+LOG_ROUTE=log
+```
+
+- **b)** On Heroku, go to _**Dashboard**_ -> _(Choose your App)_ -> _**Settings**_ -> _**Config Vars**_ and add `LOG_ROUTE` with a value such as `log`.
+
+In the above examples, `log` is used for the route name. You can set your desired name. 
+
+#### Log Pages
+There are three log types available, which are, `request`, `browser`, and `debug`. Say, the route name is set to `log`, then the following pages will be available.
+
+##### request
+Logs HTTP requests. 
+
+```
+https://{your-app-name}.herokuapp.com/{log route}/request/{YYYY-MM-DD}
+```
+
+Example:
+```
+https://web-page-dumper.herokuapp.com/log/request/2021-06-27
+```
+
+
+##### browser
+Logs browser activities.
+
+```
+https://{your-app-name}.herokuapp.com/{log route}/browser/{YYYY-MM-DD}
+```
+
+Example:
+```
+https://web-page-dumper.herokuapp.com/log/browser/2021-06-27
+```
+
+##### debug
+Logs debug information.
+
+```
+https://{your-app-name}.herokuapp.com/{log route}/debug/{YYYY-MM-DD}
+```
+
+Example:
+```
+https://web-page-dumper.herokuapp.com/log/debug/2021-06-27
+```
+
 ## Deployment to Heroku
 This web application is meant to run on [Heroku](https://www.heroku.com/). 
 
