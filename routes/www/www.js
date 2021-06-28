@@ -408,11 +408,18 @@ function _handleRequest( req, res, next ) {
 
         puppeteerExtra.use( pluginStealth() );
 
-        return await puppeteerExtra.launch({
+        let _browser = await puppeteerExtra.launch({
           headless: true,
           // userDataDir: _pathDirUserDataToday, // @deprecated 1.1.1 Causes an error "Unable to move the cache: Access is denied" when multiple browsers try to launch simultaneously.
           args: _args,
         });
+
+        // For the first launch, log the browser version.
+        let _page = await _browser.newPage();
+        req.logger.browser( 'Browser version: ', await _page.browser().version() );
+        await _page.close();
+
+        return _browser;
 
       }
 
