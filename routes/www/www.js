@@ -111,6 +111,9 @@ function _handleRequest( req, res, next ) {
     // Block resources
     query.block = _getBlockResources( query.output, query );
 
+    // waitUntil
+    query.waituntil = 'undefined' === typeof query.waituntil ? 'load' : query.waituntil;
+
     return query;
   }
     function _getBlockResources( outputType, query ) {
@@ -202,13 +205,19 @@ function _handleRequest( req, res, next ) {
 
     // Request
     let responseHTTP = await page.goto( urlThis, {
-      waitUntil: [ "networkidle0", "networkidle2", "domcontentloaded" ],
+      waitUntil: 'load',
       timeout: req.query.timeout,
     });
+    if ( 'load' === req.query.waituntil ) {
+      await _waitTillHTMLRendered( page );
+    }
 
     if ( req.query.reload ) {
       req.logger.debug( 'Reloading' );
-      responseHTTP = await page.reload({ waitUntil: [ "networkidle0", "networkidle2", "domcontentloaded" ] } );
+      responseHTTP = await page.reload({ waitUntil: 'load' } );
+      if ( 'load' === req.query.waituntil ) {
+        await _waitTillHTMLRendered( page );
+      }
     }
 
     req.logger.debug( 'Elapsed: ' + ( Date.now() - startedBrowsers[ _keyQuery ] ).toString() + ' ms' );
@@ -222,6 +231,45 @@ function _handleRequest( req, res, next ) {
     }
 
   }
+    /**
+     * @see   https://stackoverflow.com/a/61304202
+     * @param page
+     * @param timeout
+     * @returns {Promise<void>}
+     * @since   1.4.1
+     */
+    const _waitTillHTMLRendered = async (page, timeout = 30000) => {
+      const checkDurationMsecs = 1000;
+      const maxChecks = timeout / checkDurationMsecs;
+      let lastHTMLSize = 0;
+      let checkCounts = 1;
+      let countStableSizeIterations = 0;
+      const minStableSizeIterations = 3;
+
+      while(checkCounts++ <= maxChecks){
+        let html = await page.content();
+        let currentHTMLSize = html.length;
+
+        let bodyHTMLSize = await page.evaluate(() => document.body.innerHTML.length);
+
+        // console.log('last: ', lastHTMLSize, ' <> curr: ', currentHTMLSize, " body html size: ", bodyHTMLSize);
+
+        if(lastHTMLSize !== 0 && currentHTMLSize === lastHTMLSize) {
+          countStableSizeIterations++;
+        } else {
+          countStableSizeIterations = 0; //reset the counter
+        }
+
+
+        if(countStableSizeIterations >= minStableSizeIterations) {
+          // console.log("Page rendered fully..");
+          break;
+        }
+
+        lastHTMLSize = currentHTMLSize;
+        await page.waitFor(checkDurationMsecs);
+      }
+    };
     function _closeBrowserLater( browser, _keyQuery, req, _limitIdle ) {
 
       setTimeout( function( thisBrowser, thisKeyQuery ) {

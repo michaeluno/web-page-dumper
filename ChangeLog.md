@@ -1,5 +1,10 @@
 # Change Log
 
+#### 1.4.1
+- Added the `waituntil` parameter which accepts `load`, `domcontentloaded`, `networkidle2`, or `networkidle0`.  
+- Optimized page load performance.
+- Updated Puppeteer to 10.0.0.
+
 #### 1.4.0
 - Added the ability to set a log route with an environment variable.
 - Optimized for memory usage.
