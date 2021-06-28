@@ -267,7 +267,7 @@ function _handleRequest( req, res, next ) {
         }
 
         lastHTMLSize = currentHTMLSize;
-        await page.waitFor(checkDurationMsecs);
+        await page.waitForTimeout(checkDurationMsecs);
       }
     };
     function _closeBrowserLater( browser, _keyQuery, req, _limitIdle ) {
