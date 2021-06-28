@@ -267,7 +267,7 @@ LOG_ROUTE=log
 In the above examples, `log` is used for the route name. You can set your desired name. 
 
 #### Log Pages
-There are three log types available, which are, `request`, `browser`, and `debug`. Say, the route name is set to `log`, then the following pages will be available.
+There are four log types available, which are, `request`, `browser`, `debug` and `error`. Say, the route name is `log`, then the following pages will be available.
 
 ##### request
 Logs HTTP requests. 
@@ -306,6 +306,16 @@ Example:
 https://web-page-dumper.herokuapp.com/log/debug/2021-06-27
 ```
 
+##### error
+```
+https://{your-app-name}.herokuapp.com/{log route}/error/{YYYY-MM-DD}
+```
+
+Example:
+```
+https://web-page-dumper.herokuapp.com/log/error/2021-06-27
+```
+
 ## Deployment to Heroku
 This web application is meant to run on [Heroku](https://www.heroku.com/). 
 
@@ -314,6 +324,18 @@ This web application is meant to run on [Heroku](https://www.heroku.com/).
 3. In the following page, enter your desired app name and press the `Deploy App` button which will start deploying.
 4. After finishing the deployment, click on `Manage App`.
 5. In the following page, click on `Open App`.   
+
+### Buildpack
+If you get the following error,
+
+```
+error while loading shared libraries: libnss3.so: cannot open shared object file: No such file or directory
+```
+
+You need to manually add the following buildpack through the Heroku UI (Dashboard -> {Your App} -> Settings -> Buildpacks).
+
+- https://github.com/CoffeeAndCode/puppeteer-heroku-buildpack.git
+ 
 
 ## License
 MIT
