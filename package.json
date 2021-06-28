@@ -1,25 +1,24 @@
 {
   "name": "web-page-dumper",
   "description": "Dumps web page outputs including JavaScript generated contents.",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "url": "https://github.com/michaeluno/web-page-dumper",
   "author": "Michael Uno <michael2@michaeluno.jp> (https://michaeluno.jp/)",
   "license": "MIT",
   "private": true,
   "engines": {
-    "node": "12.x"
+    "node": "16.x"
   },
   "repository": {
     "type": "git",
     "url": "git@github.com:michaeluno/web-page-dumper.git"
   },
   "scripts": {
-    "start": "node ./bin/www"
+    "start": "node --optimize_for_size --max_old_space_size=460 --gc_interval=100 bin/www"
   },
   "keywords": [
     "heroku",
     "web",
-    "web-page",
     "web-page",
     "dumper",
     "proxy",
@@ -55,7 +54,7 @@
     "os-utils": "0.0.14",
     "ps-list": "^7.2.0",
     "pug": "^3.0.2",
-    "puppeteer": "^5.5.0",
+    "puppeteer": "^10.0.0",
     "puppeteer-extra": "^3.1.15",
     "puppeteer-extra-plugin-stealth": "^2.6.5",
     "puppeteer-page-proxy": "^1.2.8",
@@ -63,12 +62,12 @@
     "temp-dir": "^2.0.0",
     "username": "^5.1.0",
     "winston": "^3.3.3",
-    "winston-daily-rotate-file": "^4.5.0"
+    "winston-daily-rotate-file": "^4.5.0",
+    "dotenv": "^10.0.0"
   },
   "devDependencies": {
     "@creativebulma/bulma-divider": "^1.1.0",
     "bulma": "^0.9.1",
-    "dotenv": "^10.0.0",
     "jquery": "^3.5.1"
   }
 }
