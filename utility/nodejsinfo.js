@@ -2,7 +2,7 @@
 /* nodejs-info() Extends nodeinfo()                            (c) Michael Uno 2020- MIT Licence  */
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  */
 
-// const nodeinfo = require( 'nodejs-info' );
+const nodeinfo = require( 'nodejs-info' );
 
 'use strict';
 
