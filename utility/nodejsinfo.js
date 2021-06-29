@@ -204,7 +204,7 @@ function nodejsinfo(req, options) {
     context.dateTzOffset = Date().match(/([A-Z]+[\+-][0-9]{4}.*)/)[1];
 
     if (req.headers) {
-        const protocol = req.socket.encrypted || req.headers['x-forwarded-proto']=='https' ? 'https' : 'http';
+        const protocol = req.socket.encrypted || req.headers['x-forwarded-proto']==='https' ? 'https' : 'http';
         context.request = req;
         // add in href & remote IP address (stackoverflow.com/questions/8107856)
         context.request.href = protocol + '://' + req.headers.host + req.url;
