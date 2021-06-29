@@ -247,7 +247,7 @@ async function getPuppeteerBrowserVersion() {
     const page = await browser.newPage();
     let version = await page.browser().version();
     await browser.close();
-    return version;
+    return version.replace( 'Headless', '' );
 }
 
 module.exports = nodejsinfo; // ≡ export default nodeinfo
