@@ -2,7 +2,7 @@
 /* nodejs-info() Extends nodeinfo()                            (c) Michael Uno 2020- MIT Licence  */
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  */
 
-const nodeinfo = require( 'nodejs-info' );
+// const nodeinfo = require( 'nodejs-info' );
 
 'use strict';
 
@@ -21,6 +21,12 @@ try { packageJson = require('../package.json'); } catch (e) {}     // ignore it 
 let dependenciesJson = null;
 try { dependenciesJson = require('../package-lock.json'); } catch (e) {}     // ignore it if not available
 
+const puppeteer = require( 'puppeteer' );
+let puppeteerBrowserVersion = '';
+(async () => {
+  puppeteerBrowserVersion = await getPuppeteerBrowserVersion();
+})();
+
 // console.log( dependenciesJson );
 const template = `<main>
     <h1>Node.js {{process.version}}</h1>
@@ -30,14 +36,14 @@ const template = `<main>
             <th colspan="2"><h2>Package</h2></th>
         </thead>
         <tbody>
-            <tr><td>name</td><td>{{package.name}}</td></tr>
+            <tr><td>Name</td><td>{{package.name}}</td></tr>
             {{#if package.description}}
-            <tr><td>description</td><td>{{package.description}}</td></tr>
+            <tr><td>Description</td><td>{{package.description}}</td></tr>
             {{/if}}
-            <tr><td>version</td><td>{{package.version}}</td></tr>
+            <tr><td>Version</td><td>{{package.version}}</td></tr>
             {{#if package.dependencies}}
             <tr>
-                <td>dependencies</td>
+                <td>Dependencies</td>
                 <td>
                     <ul>
                     {{#each package.dependencies}}
@@ -45,6 +51,10 @@ const template = `<main>
                     {{/each}}
                     </ul>                
                 </td>
+            </tr>
+            <tr>
+                <td>Browser</td>                
+                <td>{{puppeteerBrowserVersion}}</td>                
             </tr>
             {{/if}}
         </tbody>
@@ -208,6 +218,8 @@ function nodejsinfo(req, options) {
         delete context.request.headers.cookie;
     }
 
+    context.puppeteerBrowserVersion = puppeteerBrowserVersion;
+
     const templateFn = handlebars.compile(template);
     const html = templateFn(context);
 
@@ -228,6 +240,14 @@ function _getIP() {
     }
     return _ipAddresses.join( ', ' );
 
+}
+
+async function getPuppeteerBrowserVersion() {
+    const browser = await puppeteer.launch();
+    const page = await browser.newPage();
+    let version = await page.browser().version();
+    await browser.close();
+    return version;
 }
 
 module.exports = nodejsinfo; // ≡ export default nodeinfo
