@@ -116,11 +116,12 @@ function _handleRequest( req, res, next ) {
     if ( ! Array.isArray( query.waituntil ) ) {
       query.waituntil = [ query.waituntil ];
     }
-    query.waituntil.filter( function( value ){
-      let _accepted = [ 'load', 'domcontentloaded', 'networkidle0', 'networkidle2' ];
-      return _accepted.includes( value ); // drop unaccepted values
+    query.waituntil = query.waituntil.filter( function( value ){
+      return [ 'load', 'domcontentloaded', 'networkidle0', 'networkidle2' ].includes( value ); // drop unaccepted values
     } );
-
+    if ( 0 === query.waituntil.length ) {
+      query.waituntil = [ 'load' ];
+    }
     return query;
   }
     function _getBlockResources( outputType, query ) {
@@ -212,7 +213,7 @@ function _handleRequest( req, res, next ) {
 
     // Request
     let responseHTTP = await page.goto( urlThis, {
-      waitUntil: req.query.waituntil,
+      waitUntil: req.query.reload ? 'load' : req.query.waituntil,
       timeout: req.query.timeout,
     });
     // @deprecated Seems unnecessary
