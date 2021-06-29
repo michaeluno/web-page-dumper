@@ -184,7 +184,7 @@ http(s)://{app address}/www/?url=https%3A%2F%2Fgithub.com&output=pdf&pdf[scale]=
 >  - `cm` - centimeter
 >  - `mm` - millimeter
 >
-> -- [Puppeteer API Tip-Of-Tree page.pdf([options])][3]
+> -- [Puppeteer API Tip-Of-Tree page([options])][3]
 
 [3]: https://github.com/puppeteer/puppeteer/blob/main/docs/api.md#pagepdfoptions
 
@@ -247,6 +247,20 @@ Such as:
 ```
 http(s)://{app address}/www/?url=https%3A%2F%2Fwww.amazon.com%2Fgp%2Fgoldbox&output=png&block[urls][]=googleadservices.com
 ```
+
+#### (string|array) `waituntil`
+Determines when Puppeteer decides the page is fully loaded. The same as the `waitUntil` parameter of the `goto()` page method.. Accepted values are `load`, `domcontentloaded`, `networkidle0`, and `networkidle2`. 
+
+Default: `load`.
+
+>  - `load` - consider navigation to be finished when the load event is fired.
+>  - `domcontentloaded` - consider navigation to be finished when the DOMContentLoaded event is fired.
+>  - `networkidle0` - consider navigation to be finished when there are no more than 0 network connections for at least 500 ms.
+>  - `networkidle2` - consider navigation to be finished when there are no more than 2 network connections for at least 500 ms.
+>
+> -- [Puppeteer API Tip-Of-Tree page([options])][4]
+
+[4]: https://github.com/puppeteer/puppeteer/blob/main/docs/api.md#pagegotourl-options
 
 ### Logging
 
