@@ -205,7 +205,7 @@ function _handleRequest( req, res, next ) {
 
     // Request
     let responseHTTP = await page.goto( urlThis, {
-      waitUntil: 'load',
+      waitUntil: req.query.waituntil,
       timeout: req.query.timeout,
     });
     if ( 'load' === req.query.waituntil ) {
@@ -214,7 +214,7 @@ function _handleRequest( req, res, next ) {
 
     if ( req.query.reload ) {
       req.logger.debug( 'Reloading' );
-      responseHTTP = await page.reload({ waitUntil: 'load' } );
+      responseHTTP = await page.reload({ waitUntil: req.query.waituntil } );
       if ( 'load' === req.query.waituntil ) {
         await _waitTillHTMLRendered( page );
       }
@@ -239,7 +239,7 @@ function _handleRequest( req, res, next ) {
      * @since   1.4.1
      */
     const _waitTillHTMLRendered = async (page, timeout = 30000) => {
-      const checkDurationMsecs = 1000;
+      const checkDurationMsecs = 100;
       const maxChecks = timeout / checkDurationMsecs;
       let lastHTMLSize = 0;
       let checkCounts = 1;
