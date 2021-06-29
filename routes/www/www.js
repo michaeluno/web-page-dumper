@@ -111,8 +111,15 @@ function _handleRequest( req, res, next ) {
     // Block resources
     query.block = _getBlockResources( query.output, query );
 
-    // waitUntil
+    // waitUntil - convert it to array
     query.waituntil = 'undefined' === typeof query.waituntil ? 'load' : query.waituntil;
+    if ( ! Array.isArray( query.waituntil ) ) {
+      query.waituntil = [ query.waituntil ];
+    }
+    query.waituntil.filter( function( value ){
+      let _accepted = [ 'load', 'domcontentloaded', 'networkidle0', 'networkidle2' ];
+      return _accepted.includes( value ); // drop unaccepted values
+    } );
 
     return query;
   }
@@ -208,16 +215,18 @@ function _handleRequest( req, res, next ) {
       waitUntil: req.query.waituntil,
       timeout: req.query.timeout,
     });
-    if ( 'load' === req.query.waituntil ) {
-      await _waitTillHTMLRendered( page );
-    }
+    // @deprecated Seems unnecessary
+    // if ( req.query.waituntil.includes( 'load' ) && 1 === req.query.waituntil.length ) {
+    //   await _waitTillHTMLRendered( page );
+    // }
 
     if ( req.query.reload ) {
       req.logger.debug( 'Reloading' );
       responseHTTP = await page.reload({ waitUntil: req.query.waituntil } );
-      if ( 'load' === req.query.waituntil ) {
-        await _waitTillHTMLRendered( page );
-      }
+      // @deprecated Seems unnecessary
+      // if ( req.query.waituntil.includes( 'load' ) && 1 === req.query.waituntil.length ) {
+      //   await _waitTillHTMLRendered( page );
+      // }
     }
 
     req.logger.debug( 'Elapsed: ' + ( Date.now() - startedBrowsers[ _keyQuery ] ).toString() + ' ms' );
@@ -232,11 +241,12 @@ function _handleRequest( req, res, next ) {
 
   }
     /**
-     * @see   https://stackoverflow.com/a/61304202
-     * @param page
-     * @param timeout
-     * @returns {Promise<void>}
-     * @since   1.4.1
+     * @see        https://stackoverflow.com/a/61304202
+     * @param      page
+     * @param      timeout
+     * @returns    {Promise<void>}
+     * @since      1.4.1
+     * @deprecated 1.4.1   Seems unnecessary.
      */
     const _waitTillHTMLRendered = async (page, timeout = 30000) => {
       const checkDurationMsecs = 100;
@@ -259,7 +269,6 @@ function _handleRequest( req, res, next ) {
         } else {
           countStableSizeIterations = 0; //reset the counter
         }
-
 
         if(countStableSizeIterations >= minStableSizeIterations) {
           // console.log("Page rendered fully..");
