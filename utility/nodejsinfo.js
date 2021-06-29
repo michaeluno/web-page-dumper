@@ -21,11 +21,12 @@ try { packageJson = require('../package.json'); } catch (e) {}     // ignore it 
 let dependenciesJson = null;
 try { dependenciesJson = require('../package-lock.json'); } catch (e) {}     // ignore it if not available
 
-const puppeteer = require( 'puppeteer' );
+// const puppeteer = require( 'puppeteer' );
 let puppeteerBrowserVersion = '';
-(async () => {
-  puppeteerBrowserVersion = await getPuppeteerBrowserVersion();
-})();
+// @deprecated somehow this seems to crash the app on Heroku
+// (async () => {
+//   puppeteerBrowserVersion = await getPuppeteerBrowserVersion();
+// })();
 
 // console.log( dependenciesJson );
 const template = `<main>
