@@ -378,14 +378,6 @@ function _handleRequest( req, res, next ) {
           args: _args,
         });
 
-        // @deprecated Seems to crash the browser on Heroku
-        // For the first launch, log the browser version.
-        // let _page = await _browser.newPage();
-        // req.logger.browser( 'Browser version: ', await _page.browser().version() );
-        // await _page.close();
-        //
-        // return _browser;
-
       }
 
     }
