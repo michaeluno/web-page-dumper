@@ -262,6 +262,89 @@ Default: `load`.
 
 [4]: https://github.com/puppeteer/puppeteer/blob/main/docs/api.md#pagegotourl-options
 
+#### (array) `action`
+Performs certain actions on the loaded web page such as click, remove, type, wait for something and so on.
+
+The action parameter must be a numeric linear array holding key-value pairs of action type and action value. 
+
+For example, the following request will perform a search on DuckDuckGo. 
+```
+http(s)://{app address}/www/?url=https://duckduckgo.com&output=png&action[][select]=%23search_form_input_homepage&action[][type]=Web%20Page%20Dumper&action[][click]=%23search_button_homepage&action[][waitForNavigation]=&
+```
+
+Notice that actions are performed sequentially. In the above example, it is interpreted as
+
+```
+[
+  {
+    select: #search_form_input
+  },
+  {
+    type: Web Page Dumper
+  },
+  {
+    click: #search_button_homepage
+  },
+  {
+    waitForNavigation: 
+  },
+]
+```
+
+##### Action Types
+The action types are as follows.
+
+###### (selector) select
+Selects elements specified with a selector. Use this before an action that does not have a selector parameter.
+
+Accepts a value of selector. The selector can be XPath. 
+
+###### (selector) click
+
+Clicks a first found element specified with a selector.
+
+Accepts a value of selector. The selector can be XPath.
+
+This clicks on the top-right icon that expands the app panel on Google home page.
+```
+http(s)://{app address}/www/?url=https%3A%2F%2Fgoogle.com&output=jpg&action[][click]=a.gb_C
+```
+
+###### (selector) remove
+Removes elements specified with a selector. 
+
+Accepts a value of selector. The selector can be XPath.
+
+This removes the top banner element on the Google search page. Notice that `.k1zIA` is the class selector of the banner container.
+
+```
+http(s)://{app address}/www/?url=https%3A%2F%2Fgoogle.com&output=png&action[][remove]=.k1zIA
+```
+
+###### (characters) type
+Types given characters. 
+
+This action does not accept a selector. Use the `select` action before this to specify an element for typing.
+
+###### (selector) choose
+Selects an item from a `<select>` tag.
+
+Accepts a value of selector. * __This action does not support XPath.__
+
+###### (selector) waitForElement
+Waits for an element to appear.
+
+Accepts a value of selector. The selector can be XPath.
+
+###### (void) waitForNavigation
+Waits for the next page to load, used with clicking a link or submitting a form.
+
+###### (integer) waitForTimeout
+Waits for certain milliseconds.
+
+Accepts a value of positive number.
+
+
 ### Logging
 
 #### Enabling Log Pages
@@ -286,8 +369,9 @@ There are four log types available, which are, `request`, `browser`, `debug` and
 ##### request
 Logs HTTP requests. 
 
+Format:
 ```
-https://{your-app-name}.herokuapp.com/{log route}/request/{YYYY-MM-DD}
+http(s)://{app address}/{log route}/request/{YYYY-MM-DD}
 ```
 
 Example:
@@ -299,8 +383,9 @@ https://web-page-dumper.herokuapp.com/log/request/2021-06-27
 ##### browser
 Logs browser activities.
 
+Format:
 ```
-https://{your-app-name}.herokuapp.com/{log route}/browser/{YYYY-MM-DD}
+http(s)://{app address}/{log route}/browser/{YYYY-MM-DD}
 ```
 
 Example:
@@ -311,8 +396,9 @@ https://web-page-dumper.herokuapp.com/log/browser/2021-06-27
 ##### debug
 Logs debug information.
 
+Format:
 ```
-https://{your-app-name}.herokuapp.com/{log route}/debug/{YYYY-MM-DD}
+http(s)://{app address}/{log route}/debug/{YYYY-MM-DD}
 ```
 
 Example:
@@ -321,8 +407,11 @@ https://web-page-dumper.herokuapp.com/log/debug/2021-06-27
 ```
 
 ##### error
+Logs errors.
+
+Format:
 ```
-https://{your-app-name}.herokuapp.com/{log route}/error/{YYYY-MM-DD}
+http(s)://{app address}/{log route}/error/{YYYY-MM-DD}
 ```
 
 Example:
