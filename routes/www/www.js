@@ -17,6 +17,15 @@ const Request_pdf     = require( './request/Request_pdf' );
 const Request_jpeg    = require( './request/Request_jpeg' );
 const Request_png     = require( './request/Request_png' );
 
+const Action_select             = require( './action/Action_select' );
+const Action_click              = require( './action/Action_click' );
+const Action_remove             = require( './action/Action_remove' );
+const Action_type               = require( './action/Action_type' );
+const Action_choose             = require( './action/Action_choose' );
+const Action_waitForTimeout     = require( './action/Action_waitForTimeout' );
+const Action_waitForElement     = require( './action/Action_waitForElement' );
+const Action_waitForNavigation  = require( './action/Action_waitForNavigation' );
+
 let browserEndpoints = {};
 let startedBrowsers  = {};
 
@@ -122,6 +131,10 @@ function _handleRequest( req, res, next ) {
     if ( 0 === query.waituntil.length ) {
       query.waituntil = [ 'load' ];
     }
+
+    // Actions
+    query.action = Array.isArray( query.action ) ? query.action : [];
+
     return query;
   }
     function _getBlockResources( outputType, query ) {
@@ -224,6 +237,8 @@ function _handleRequest( req, res, next ) {
 
     req.logger.debug( 'Elapsed: ' + ( Date.now() - startedBrowsers[ _keyQuery ] ).toString() + ' ms' );
 
+    await _doActions( page, req, res );
+
     await _processRequest( urlThis, page, req, res, responseHTTP, _typeOutput );
 
     _closePageLater( page, 100 );
@@ -233,6 +248,83 @@ function _handleRequest( req, res, next ) {
     }
 
   }
+
+    /**
+     * Performs actions defined in the `action` URL query parameter.
+     * @param page
+     * @param req
+     * @param res
+     * @private
+     * @since 1.5.0
+     * @see https://devdocs.io/puppeteer-page/
+     */
+    async function _doActions( page, req, res ) {
+      const actionsAccepted = [
+        // Puppeteer page methods @see https://devdocs.io/puppeteer-page/
+        // click( selector )
+        // type( selector, keywords )
+        // focus( selector )
+        // tap( selector )
+        // hover( selector )
+        // waitFor( milliseconds )
+        // select( selector, value ) for the <select> element
+      ];
+      let _factoryActions = {
+        // the parameter takes a selector
+        'select':             Action_select,            // selects elements
+        'click':              Action_click,             // clicks on an element
+        'remove':             Action_remove,            // removes elements
+        'waitForElement':     Action_waitForElement,    // waits for an element to appear
+
+        // the parameter takes not a selector
+        'type':               Action_type,              // types text in input fields
+        'choose':             Action_choose,            // select an item of a <select> element
+        'waitForTimeout':     Action_waitForTimeout,
+        'waitForNavigation':  Action_waitForNavigation,
+
+        // Not implemented below yet
+        // 'extract':  Action_extract,    // extracts elements
+        // 'focus':    Action_focus,      // focuses on an UI element
+        // 'tap':      Action_tap,        // taps an element
+        // 'wait':     Action_wait,       // waits for navigation/element/milliseconds
+        // 'press':    Action_press,      // presses down a keyboard key
+      }
+      const _actions = req.query.action;
+
+      let _previousSelector;
+
+      for ( let _i=0; _i < _actions.length; _i++ ) {
+
+        const _actionSet = _actions[ _i ];
+        if ( typeof _actionSet !== 'object' || _actionSet === null ) {
+          continue;
+        }
+
+        for ( const _keyAction in _actionSet ) {
+          if ( ! _actionSet.hasOwnProperty( _keyAction ) ) {
+            continue;
+          }
+
+          const _value = _actionSet[ _keyAction ];
+          _previousSelector = _value && _factoryActions[ _keyAction ].takesSelector()
+            ? _value
+            : _previousSelector;
+
+          if ( 'select' === _keyAction ) {
+            continue;
+          }
+          if ( ! _previousSelector ) {
+            continue;
+          }
+
+          let _action = await _factoryActions[ _keyAction ].instantiate( page, _previousSelector, _value, req, res );
+          await _action.do();
+
+        }
+      }
+
+    }
+
 
     function _closeBrowserLater( browser, _keyQuery, req, _limitIdle ) {
 
