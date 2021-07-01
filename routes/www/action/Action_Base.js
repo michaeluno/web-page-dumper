@@ -35,11 +35,24 @@ module.exports = class Action_Base {
   async _initialize() {}
 
   async do() {
+
+    try {
+      if ( this.isXPath ) {
+        await this.page.waitForXPath( this.selector, { timeout: 1000 } );
+      } else {
+        await this.page.waitForSelector( this.selector, { timeout: 1000 } );
+      }
+    } catch {
+      this.req.logger.debug('The element did not appear: ' + this.selector );
+      return;
+    }
+
     if ( this.isXPath ) {
       await this._doForXPath();
       return;
     }
     await this._do();
+
   }
 
   async _doForXPath() {}
