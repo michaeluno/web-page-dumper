@@ -123,15 +123,15 @@ function _handleRequest( req, res, next ) {
     query.block = _getBlockResources( query.output, query );
 
     // waitUntil - convert it to array
-    query.waituntil = 'undefined' === typeof query.waituntil ? 'load' : query.waituntil;
-    if ( ! Array.isArray( query.waituntil ) ) {
-      query.waituntil = [ query.waituntil ];
+    query.waitUntil = 'undefined' === typeof query.waitUntil ? 'load' : query.waitUntil;
+    if ( ! Array.isArray( query.waitUntil ) ) {
+      query.waitUntil = [ query.waitUntil ];
     }
-    query.waituntil = query.waituntil.filter( function( value ){
+    query.waitUntil = query.waitUntil.filter( function( value ){
       return [ 'load', 'domcontentloaded', 'networkidle0', 'networkidle2' ].includes( value ); // drop unaccepted values
     } );
-    if ( 0 === query.waituntil.length ) {
-      query.waituntil = [ 'load' ];
+    if ( 0 === query.waitUntil.length ) {
+      query.waitUntil = [ 'load' ];
     }
 
     // Actions
@@ -228,13 +228,13 @@ function _handleRequest( req, res, next ) {
 
     // Request
     let responseHTTP = await page.goto( urlThis, {
-      waitUntil: req.query.reload ? 'load' : req.query.waituntil,
+      waitUntil: req.query.reload ? 'load' : req.query.waitUntil,
       timeout: req.query.timeout,
     });
 
     if ( req.query.reload ) {
       req.logger.debug( 'Reloading' );
-      responseHTTP = await page.reload({ waitUntil: req.query.waituntil } );
+      responseHTTP = await page.reload({ waitUntil: req.query.waitUntil } );
     }
 
     req.logger.debug( 'Elapsed: ' + ( Date.now() - startedBrowsers[ _keyQuery ] ).toString() + ' ms' );

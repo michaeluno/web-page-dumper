@@ -248,7 +248,7 @@ Such as:
 http(s)://{app address}/www/?url=https%3A%2F%2Fwww.amazon.com%2Fgp%2Fgoldbox&output=png&block[urls][]=googleadservices.com
 ```
 
-#### (string|array) `waituntil`
+#### (string|array) `waitUntil`
 Determines when Puppeteer decides the page is fully loaded. The same as the `waitUntil` parameter of the `goto()` page method.. Accepted values are `load`, `domcontentloaded`, `networkidle0`, and `networkidle2`. 
 
 Default: `load`.
