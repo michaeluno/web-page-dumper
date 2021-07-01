@@ -26,8 +26,8 @@ module.exports = class Action_Base {
     this.isXPath  = ( '//' === ( this.selector.slice( 0, 2 ) ) || '/html/' === ( this.selector.slice( 0, 6 ) ) );
   }
 
-  static async instantiate( page, selector, req, res ) {
-     const o = new this( page, selector, req, res );
+  static async instantiate( page, selector, value, req, res ) {
+     const o = new this( page, selector, value, req, res );
      await o._initialize();
      return o;
   }
