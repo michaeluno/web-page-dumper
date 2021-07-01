@@ -23,6 +23,7 @@ const Action_remove             = require( './action/Action_remove' );
 const Action_type               = require( './action/Action_type' );
 const Action_choose             = require( './action/Action_choose' );
 const Action_extract            = require( './action/Action_extract' );
+const Action_extractHard        = require( './action/Action_extractHard' );
 const Action_waitForTimeout     = require( './action/Action_waitForTimeout' );
 const Action_waitForElement     = require( './action/Action_waitForElement' );
 const Action_waitForNavigation  = require( './action/Action_waitForNavigation' );
@@ -276,7 +277,8 @@ function _handleRequest( req, res, next ) {
         'click':              Action_click,             // clicks on an element
         'remove':             Action_remove,            // removes elements
         'waitForElement':     Action_waitForElement,    // waits for an element to appear
-        'extract':            Action_extract,           // extracts elements
+        'extract':            Action_extract,           // extracts elements (keeps the head tag element)
+        'extractHard':        Action_extractHard,           // extracts elements (removes the head tag elements)
 
         // the parameter takes not a selector
         'type':               Action_type,              // types text in input fields
