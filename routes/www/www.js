@@ -290,22 +290,24 @@ function _handleRequest( req, res, next ) {
         // 'press':    Action_press,      // presses down a keyboard key
       }
       const _actions = req.query.action;
+      req.logger.debug( 'actions', _actions );
 
       let _previousSelector;
 
       for ( let _i=0; _i < _actions.length; _i++ ) {
 
-        const _actionSet = _actions[ _i ];
+        let _actionSet = _actions[ _i ];
         if ( typeof _actionSet !== 'object' || _actionSet === null ) {
           continue;
         }
 
+        req.logger.debug( 'action set', _actionSet );
         for ( const _keyAction in _actionSet ) {
           if ( ! _actionSet.hasOwnProperty( _keyAction ) ) {
             continue;
           }
 
-          const _value = _actionSet[ _keyAction ];
+          let _value = _actionSet[ _keyAction ];
           _previousSelector = _value && _factoryActions[ _keyAction ].takesSelector()
             ? _value
             : _previousSelector;
@@ -316,7 +318,35 @@ function _handleRequest( req, res, next ) {
           if ( ! _previousSelector ) {
             continue;
           }
+          req.logger.debug( 'action: ' + _keyAction + ' selector: ' + _previousSelector + ' value: ', _value );
 
+          // There is a case that the value is an object such as
+          // {
+          //   "0": "//form[@id='sp-cc']",
+          //   "1": "//div[contains(.,'ShovelerList')]"
+          // }
+          // when the action parameter is like
+          // {
+          //   "remove": [
+          //     "//form[@id='ab-cd']",
+          //     "//div[contains(.,'SomeList')]"
+          //   ],
+          // }
+          // Note that somehow it is not an array but an object.
+          if ( 'object' === typeof _value && null !== _value ) {
+            for ( const _index in _value ) {
+              if ( ! _value.hasOwnProperty( _index ) ) {
+                continue;
+              }
+              _previousSelector = _value[ _index ] && _factoryActions[ _keyAction ].takesSelector()
+                ? _value[ _index ]
+                : _previousSelector;
+              let _action = await _factoryActions[ _keyAction ].instantiate( page, _previousSelector, _value[ _index ], req, res );
+              await _action.do();
+            }
+            continue;
+          }
+          // The value is a string
           let _action = await _factoryActions[ _keyAction ].instantiate( page, _previousSelector, _value, req, res );
           await _action.do();
 
