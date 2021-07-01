@@ -1,7 +1,9 @@
 # Change Log
 
 #### 1.5.0
-- Added the `action` parameter which allows the user to define actions to perform on the web page.
+- Added the `action` parameter which allows the user to perform actions on the web page.
+- Added the `waitUntil` parameter.
+- Deprecated the `waituntil` parameter.
 
 #### 1.4.1
 - Added the `waituntil` parameter which accepts `load`, `domcontentloaded`, `networkidle2`, or `networkidle0`.  
