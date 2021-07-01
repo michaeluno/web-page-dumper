@@ -331,6 +331,20 @@ Selects an item from a `<select>` tag.
 
 Accepts a value of selector. * __This action does not support XPath.__
 
+###### (selector) extract
+Extracts elements.
+
+This replaces the elements' innerHTML with the HTML body tag inner HTML. Use this to lighten up the result source code.
+
+Accepts a value of selector.
+
+###### (selector) extractHard 
+Extracts elements.
+
+Similar to the `extract` action except that this removes all head tag elements so the styles will be lost.
+
+Accepts a value of selector.
+
 ###### (selector) waitForElement
 Waits for an element to appear.
 
