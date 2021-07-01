@@ -21,7 +21,7 @@ module.exports = class Action_extract extends Action_Base {
 
   async _do() {
 
-    let _innerHTMLs = await page.$$eval( this.selector, elements => {
+    let _innerHTMLs = await this.page.$$eval( this.selector, elements => {
       let _innerHTMLs = '';
       for ( let _i=0; _i < elements.length; _i++ ) {
         _innerHTMLs += elements[ _i ].innerHTML;
