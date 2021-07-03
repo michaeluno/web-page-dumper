@@ -269,7 +269,7 @@ The action parameter must be a numeric linear array holding key-value pairs of a
 
 For example, the following request will perform a search on DuckDuckGo. 
 ```
-http(s)://{app address}/www/?url=https://duckduckgo.com&output=png&action[][select]=%23search_form_input_homepage&action[][type]=Web%20Page%20Dumper&action[][click]=%23search_button_homepage&action[][waitForNavigation]=&
+http(s)://{app address}/www/?url=https://duckduckgo.com&output=png&action[0][select]=%23search_form_input_homepage&action[1][type]=Web%20Page%20Dumper&action[2][click]=%23search_button_homepage&action[3][waitForNavigation]=&
 ```
 
 Notice that actions are performed sequentially. In the above example, it is interpreted as
@@ -292,7 +292,7 @@ Notice that actions are performed sequentially. In the above example, it is inte
 ```
 
 ##### Action Types
-The action types are as follows.
+The available action types are as follows.
 
 ###### (selector) select
 Selects elements specified with a selector. Use this before an action that does not have a selector parameter.
@@ -329,7 +329,7 @@ This action does not accept a selector. Use the `select` action before this to s
 ###### (selector) choose
 Selects an item from a `<select>` tag.
 
-Accepts a value of selector. * __This action does not support XPath.__
+Accepts a value of selector. _* This action does not support XPath._
 
 ###### (selector) extract
 Extracts elements.
