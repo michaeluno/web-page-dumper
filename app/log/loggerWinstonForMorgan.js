@@ -24,7 +24,7 @@ const filterDenyLabelMorgan = winston.format((info, opts) => {
 const filterDeny = winston.format((info, opts) => {
   let _ignoreString = [
     'GET /fontawsome5/', 'GET /stylesheets/', 'GET /javascripts/', 'GET /images/',
-    'GET /log/', 'GET /error', 'GET /favicon.ico'
+    'GET /error', 'GET /favicon.ico'
   ];
   if ( _ignoreString.some( info.message.includes.bind( info.message ) ) ) {
       return false;
