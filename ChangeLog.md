@@ -1,5 +1,8 @@
 # Change Log
 
+#### 1.5.1
+- Optimized the logging criteria. 
+
 #### 1.5.0
 - Added the `action` parameter which allows the user to perform actions on the web page.
 - Added the `waitUntil` parameter.
