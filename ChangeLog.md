@@ -1,5 +1,9 @@
 # Change Log
 
+#### 1.6.0
+- Added the `cookies` parameter.
+- Added the `version` route.
+
 #### 1.5.1
 - Optimized the logging criteria. 
 
