@@ -9,6 +9,7 @@ module.exports = function( app ) {
   app.use( '/nodejsinfo', require( './nodejsinfo' ) );
   app.use( '/process', require( './process' ) );
   app.use( '/usage', require( './usage' ) );
+  app.use( '/version', require( './version' ) );
   app.use( '/error', require( './error.js' ) );
 
   if ( process.env.LOG_ROUTE ) {
