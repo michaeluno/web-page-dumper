@@ -198,6 +198,27 @@ Additional HTTP headers sent to the page.
 http(s)://{app address}/www/?url=https%3A%2F%2Fgoogle.com%2F&output=jpg&headers[Accept-Language]=en&headers[dnt]=1
 ```
 
+#### (array) `cookies`
+Cookies to set. 
+
+Accepts a linear array holding objects with the following key-value pairs.
+
+  - `name` <string> required
+  - `value` <string> required
+  - `domain` <string>   
+  - `url` <string> 
+  - `path` <string>
+  - `expires` <number> Unix time in seconds.
+  - `httpOnly` <boolean>
+  - `secure` <boolean>
+  - `sameSite` <"Strict"|"Lax">
+
+If the `domain` argument is missing, the `url` argument will be automatically set with the requesting URL.
+
+```
+http(s)://{app address}/www/?url=https%3A%2F%2Fgoogle.com%2F&output=jpg&cookies[0][name]=foo&cookies[0][value]=bar&
+```
+
 #### (array) `args`
 
 The `args` argument for the `puppeteer.launch()` method. For accepted arguments, please see [here](https://peter.sh/experiments/chromium-command-line-switches/).
