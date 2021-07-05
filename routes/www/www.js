@@ -53,7 +53,7 @@ function _handleRequest( req, res, next ) {
     return;
   }
 
-  req.query = _getQueryFormatted( req.query, req );
+  req.query = _getQueryFormatted( req.query, req, _urlThis );
   req.logger.debug( 'query', req.query );
 
   (async () => {
@@ -67,7 +67,7 @@ function _handleRequest( req, res, next ) {
   })();
 
 }
-  function _getQueryFormatted( query ) {
+  function _getQueryFormatted( query, req, urlThis ) {
 
     // Required
     query.output   = 'undefined' !== typeof query.output && query.output ? query.output.toLowerCase() : '';
@@ -137,6 +137,17 @@ function _handleRequest( req, res, next ) {
     // Actions
     query.action = Array.isArray( query.action ) ? query.action : [];
 
+    // Cookies
+    query.cookies = 'undefined' === typeof query.cookies ? [] : query.cookies;
+    for ( let _i=0; _i < query.cookies.length; _i++ ) {
+      if ( typeof query.cookies[ _i ] !== 'object' || null === query.cookies[ _i ] ) {
+        continue;
+      }
+      if ( ! query.cookies[ _i ].hasOwnProperty( 'domain' ) && ! query.cookies[ _i ].hasOwnProperty( 'url' ) ) {
+        query.cookies[ _i ][ 'url' ] = urlThis;
+      }
+    }
+
     return query;
   }
     function _getBlockResources( outputType, query ) {
@@ -196,6 +207,13 @@ function _handleRequest( req, res, next ) {
     await page._client.send( 'Network.setCacheDisabled', {  // @see https://github.com/puppeteer/puppeteer/issues/2497#issuecomment-509959074
       cacheDisabled: ! req.query.cache
     });
+
+    // Cookies
+    if ( Array.isArray( req.query.cookies ) && req.query.cookies.length ) {
+      await page.setCookie( ...req.query.cookies );
+      const _cookiesSet = await page.cookies( urlThis );
+      req.logger.debug( 'Set cookies: ' + JSON.stringify( _cookiesSet ) );
+    }
 
     // User Agent
     await page.setUserAgent( req.query.user_agent || ( await browser.userAgent() ).replace( 'Headless', '' ) );
