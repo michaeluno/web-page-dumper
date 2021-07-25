@@ -7,6 +7,7 @@ module.exports = function( app ) {
   app.use( '/', require( './index' ) );
   app.use( '/www', require( './www/www.js' ) );
   app.use( '/nodejsinfo', require( './nodejsinfo' ) );
+  app.use( '/appinfo', require( './appinfo' ) );
   app.use( '/process', require( './process' ) );
   app.use( '/usage', require( './usage' ) );
   app.use( '/version', require( './version' ) );
