@@ -37,7 +37,6 @@ module.exports = class Request_Base {
    * Transfer Puppeteer cookies to Express cookies.
    * @param res
    * @returns {Promise<void>}
-   * @private
    */
   async _setCookies( res ) {
     let _allCookies = await this.page._client.send( 'Network.getAllCookies' );

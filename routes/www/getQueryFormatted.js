@@ -86,6 +86,9 @@ module.exports = function formatQuery( query, req, urlThis ) {
     }
   }
 
+  // Omits
+  query.omit                 = query.omit || {};
+
   return query;
 
 }

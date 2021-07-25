@@ -49,6 +49,14 @@ The output type. Accepts the following values:
 - `png`, `jpg`, `jpeg` - outputs a screenthot image of the site
 - `pdf`
 
+#### (array) `omit` [1.7.0+] 
+What elements to omit when the `json` output is specified. Pass non-empty values such as 1. 
+
+e.g. This omits the `query` and `body` elements from the response. 
+```
+http(s)://{app address}/www/?url=https%3A%2F%2Fwww.google.com&output=json&omit[query]=1&omit[body]=1
+```
+
 #### (array) `viewport`
 
 Sets how the browser should be viewed.
