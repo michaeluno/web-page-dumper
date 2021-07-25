@@ -2,7 +2,6 @@
 
 #### 1.7.0
 - Added the `omit` parameter for the `json` output type.
-- Added the `appinfo` route.
 
 #### 1.6.0
 - Added the `cookies` parameter.
