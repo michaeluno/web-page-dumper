@@ -44,6 +44,7 @@ The output type. Accepts the following values:
   - `status` - (integer) the HTTP status code as a number such as `200` and `404`.
   - `heaers` - (array) the HTTP header.
   - `body`   - (string) the HTTP body, usually an HTML document.
+- `text`, `txt` - outputs the site source as a text document. Use this for non-html documents such as XML and JSON. 
 - `html`, `htm` - outputs the site source as `html` or `htm`. HTTP header will be omitted.
 - `mhtml` - outputs the site source as `mhtml`.
 - `png`, `jpg`, `jpeg` - outputs a screenthot image of the site

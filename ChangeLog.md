@@ -1,5 +1,8 @@
 # Change Log
 
+#### 1.8.0
+- Added the `text` output type.
+
 #### 1.7.0
 - Added the `omit` parameter for the `json` output type.
 

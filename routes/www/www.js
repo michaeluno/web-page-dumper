@@ -12,6 +12,7 @@ const pluginStealth   = require( 'puppeteer-extra-plugin-stealth' );
 const useProxy        = require( 'puppeteer-page-proxy' );
 
 const Request_json    = require( './request/Request_json' );
+const Request_text    = require( './request/Request_text' );
 const Request_debug   = require( './request/Request_debug' );
 const Request_html    = require( './request/Request_html' );
 const Request_mhtml   = require( './request/Request_mhtml' );
@@ -150,6 +151,10 @@ function _handleRequest( req, res, next ) {
       await page.setJavaScriptEnabled( false );
     }
 
+    // Capture extra headers
+    // @deprecated 1.8.0
+    let cdpRequestDataRaw = await getLoggingOfAllNetworkData( page, urlThis );
+
     // Request
     let responseHTTP = await page.goto( urlThis, {
       waitUntil: req.query.reload ? 'load' : req.query.waitUntil,
@@ -161,18 +166,85 @@ function _handleRequest( req, res, next ) {
       responseHTTP = await page.reload({ waitUntil: req.query.waitUntil } );
     }
 
+    // Extract Network.responseReceivedExtraInfo header. Without this, res.headers() returns incomplete items.
+    let responseHeaders = getHeaders( cdpRequestDataRaw, urlThis );
+
     req.logger.debug( 'Elapsed: ' + ( Date.now() - startedBrowsers[ _keyQuery ] ).toString() + ' ms' );
 
     await _doActions( page, req, res );
 
-    await _processRequest( urlThis, page, req, res, responseHTTP, _typeOutput );
+    await _processRequest( urlThis, page, req, res, responseHTTP, _typeOutput, responseHeaders );
 
-    _closePageLater( page, 100 );
+    _closePageLater( page, 100, req );
 
     if ( _keyQueryDefault !== _keyQuery ) {
       _closeBrowserLater( browser, _keyQuery, req, 60000 );
     }
 
+  }
+
+  /**
+   * Extracts response headers from captured responses.
+   * @param cdpRequestDataRaw
+   * @param url
+   */
+  function getHeaders( cdpRequestDataRaw, url ) {
+    let _headers = {};
+    const isObject = function(a) {
+        return (!!a) && (a.constructor === Object);
+    };
+    for ( const _requestID in cdpRequestDataRaw ) {
+      if ( ! cdpRequestDataRaw.hasOwnProperty( _requestID ) ) {
+        continue;
+      }
+      let request = cdpRequestDataRaw[ _requestID ];
+      for( const _eventName in request ) {
+        if ( ! request.hasOwnProperty( _eventName ) ) {
+          continue;
+        }
+        if ( isObject( request[ _eventName ].headers ) ) {
+          Object.assign( _headers, request[ _eventName ].headers );
+        }
+      }
+
+    }
+    return _headers;
+  }
+
+  /**
+   * Returns map of request ID to raw CDP request data. This will be populated as requests are made.
+   * @since 1.8.0
+   * @param page
+   * @param url
+   * @returns {Promise<{}>}
+   * @see https://stackoverflow.com/a/62232903
+   */
+  async function getLoggingOfAllNetworkData( page, url ) {
+    const cdpSession = await page.target().createCDPSession()
+    await cdpSession.send('Network.enable')
+    const cdpRequestDataRaw = {}
+    let   requestID;
+    const addCDPRequestDataListener = ( eventName, url ) => {
+      cdpSession.on( eventName, request => {
+        let isURLSet = 'undefined' !== typeof request.response && request.response.url;
+        if ( isURLSet && request.response.url !== url && request.response.url !== url + '/' ) {
+          return;
+        }
+        if ( isURLSet ) {
+          requestID = request.requestId;
+        }
+        if ( requestID && request.requestId !== requestID ) {
+          return;
+        }
+        cdpRequestDataRaw[ request.requestId ] = cdpRequestDataRaw[ request.requestId ] || {}
+        Object.assign( cdpRequestDataRaw[ request.requestId ], { [ eventName ]: request } );
+      })
+    }
+    // addCDPRequestDataListener( 'Network.requestWillBeSent' )
+    // addCDPRequestDataListener( 'Network.requestWillBeSentExtraInfo' )
+    addCDPRequestDataListener( 'Network.responseReceived', url );
+    addCDPRequestDataListener( 'Network.responseReceivedExtraInfo', url );
+    return cdpRequestDataRaw
   }
 
     /**
@@ -185,7 +257,7 @@ function _handleRequest( req, res, next ) {
      * @see https://devdocs.io/puppeteer-page/
      */
     async function _doActions( page, req, res ) {
-      const actionsAccepted = [
+      // const actionsAccepted = [
         // Puppeteer page methods @see https://devdocs.io/puppeteer-page/
         // click( selector )
         // type( selector, keywords )
@@ -194,7 +266,7 @@ function _handleRequest( req, res, next ) {
         // hover( selector )
         // waitFor( milliseconds )
         // select( selector, value ) for the <select> element
-      ];
+      // ];
       let _factoryActions = {
         // the parameter takes a selector
         'select':             Action_select,            // selects elements
@@ -352,9 +424,10 @@ function _handleRequest( req, res, next ) {
      * In the meantime, close the page in the background.
      * @param page
      * @param timeout
+     * @param req
      * @private
      */
-    function _closePageLater( page, timeout ) {
+    function _closePageLater( page, timeout, req ) {
       (async () => {
         await new Promise(resolve => {
           setTimeout( resolve, timeout );
@@ -364,7 +437,7 @@ function _handleRequest( req, res, next ) {
         await client.send( 'Network.clearBrowserCookies' );
 
         // await page.goto( 'about:blank' );
-        console.log( 'Closing the page:', await page.url() );
+        req.logger.browser( 'Closing the page: ' + await page.url() );
         await page.close();
       })();
     }
@@ -431,9 +504,10 @@ function _handleRequest( req, res, next ) {
 
     }
 
-    async function _processRequest( url, page, req, res, responseHTTP, _type ) {
+    async function _processRequest( url, page, req, res, responseHTTP, _type, responseHeaders ) {
 
       let _factory = {
+        'text':   Request_text,   'txt':   Request_text,
         'debug':  Request_debug,
         'json':   Request_json,
         'html':   Request_html,   'htm': Request_html,
@@ -443,7 +517,7 @@ function _handleRequest( req, res, next ) {
         'png':    Request_png,
       }
       _type = Object.keys( _factory ).includes( _type ) ? _type : 'json';
-      let _request = await _factory[ _type ].instantiate( url, page, req, res, responseHTTP );
+      let _request = await _factory[ _type ].instantiate( url, page, req, res, responseHTTP, responseHeaders );
       await _request.do();
 
     }

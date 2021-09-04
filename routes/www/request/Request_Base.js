@@ -14,17 +14,19 @@ module.exports = class Request_Base {
   req;
   res;
   responseHTTP;
+  responseHeaders;
 
-  constructor( urlRequest, page, req, res, responseHTTP ) {
+  constructor( urlRequest, page, req, res, responseHTTP, responseHeaders ) {
     this.urlRequest = urlRequest;
     this.page = page;
     this.req = req;
     this.res = res;
     this.responseHTTP = responseHTTP;
+    this.responseHeaders = responseHeaders;
   }
 
-  static async instantiate( urlRequest, page, req, res, responseHTTP ) {
-     const o = new this( urlRequest, page, req, res, responseHTTP );
+  static async instantiate( urlRequest, page, req, res, responseHTTP, responseHeaders ) {
+     const o = new this( urlRequest, page, req, res, responseHTTP, responseHeaders );
      await o._initialize();
      return o;
   }
@@ -56,10 +58,10 @@ module.exports = class Request_Base {
   async _setHeader( res ) {
 
     // Transfer response headers
-    this._removeDefaultHeaders( this.res )
+    this._removeDefaultHeaders( res )
 
     /// Set the requested web site headers.
-    let _headers = await this.responseHTTP.headers();
+    let _headers = this.responseHeaders;
     let _headerToSend = {};
     for ( let [ key, value ] of Object.entries( _headers ) ) {
 
