@@ -1,5 +1,8 @@
 # Change Log
 
+#### 1.8.1
+- Added the `Access-Control-Allow-Origin: *` response header to support CORS.
+
 #### 1.8.0
 - Added the `text` output type.
 

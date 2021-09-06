@@ -34,7 +34,7 @@ module.exports = class Request_debug extends Request_Image {
       encoding: 'base64'
     } );
     this.res.locals._debug = _debug; // avoid the key 'locals.debug' as it triggers express console outputs
-    await this._setHeader( this.res );
+    await this._setHeader();
     await this._setCookies( this.res );
 
     this.res.render( 'debug', this.req.app.get( 'config' ) );

@@ -55,10 +55,12 @@ module.exports = class Request_Base {
     }
   }
 
-  async _setHeader( res ) {
+  async _setHeader( removeDefault ) {
 
     // Transfer response headers
-    this._removeDefaultHeaders( res )
+    if ( removeDefault ) {
+      this._removeDefaultHeaders();
+    }
 
     /// Set the requested web site headers.
     let _headers = this.responseHeaders;
@@ -69,30 +71,30 @@ module.exports = class Request_Base {
       if ( 'Set-Cookie' === _key ) {
         continue;
       }
-      let _value = 'Set-Cookie' === _key
+      _headerToSend[ _key ] = 'Set-Cookie' === _key
         ? value.split( /\r?\n|\r/g )
         : value.replace(/\r?\n|\r/g, '' );
-      this.res.setHeader( _key , _value );
-      _headerToSend[ _key ] = _value
 
     }
+    _headerToSend[ 'Access-Control-Allow-Origin' ] = '*';
+    this.res.set( _headerToSend );
     this.res.removeHeader( 'Content-Encoding' ); // "Content-Encoding: gzip" causes a blank page in the browser.
 
     this.req.logger.debug( 'Set Header', _headerToSend );
 
   }
 
-  _removeDefaultHeaders( res ) {
-    res.removeHeader( "set-cookie" );
-    res.removeHeader( "Set-Cookie" );
-    res.removeHeader( "Connection" );
-    res.removeHeader( "Content-Length" );
-    res.removeHeader( "Content-Type" );
-    res.removeHeader( "Date" );
-    res.removeHeader( "ETag" );
-    res.removeHeader( "Keep-Alive" );
-    res.removeHeader( "X-DNS-Prefetch-Control" );
-    res.removeHeader( "X-Powered-By" );
+  _removeDefaultHeaders() {
+    this.res.removeHeader( "set-cookie" );
+    this.res.removeHeader( "Set-Cookie" );
+    this.res.removeHeader( "Connection" );
+    this.res.removeHeader( "Content-Length" );
+    this.res.removeHeader( "Content-Type" );
+    this.res.removeHeader( "Date" );
+    this.res.removeHeader( "ETag" );
+    this.res.removeHeader( "Keep-Alive" );
+    this.res.removeHeader( "X-DNS-Prefetch-Control" );
+    this.res.removeHeader( "X-Powered-By" );
   }
 
 
