@@ -1,5 +1,8 @@
 # Change Log
 
+#### 1.8.2
+- Updated the `color-string` dependency.
+
 #### 1.8.1
 - Added the `Access-Control-Allow-Origin: *` response header to support CORS.
 
