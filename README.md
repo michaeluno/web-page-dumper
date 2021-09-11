@@ -406,7 +406,7 @@ WPD_TIMEOUT=29000
 ### Logging
 
 #### Enabling Log Pages
-To enable the access to the app's log, you need to set an environment variable of `LOG_ROUTE` with a value serving as the root name (part of URL path). 
+To enable the access to the app's log, you need to set an environment variable of `WPD_LOG_ROUTE` with a value serving as the root name (part of URL path). 
 
 There are mainly two options: 
 
@@ -414,10 +414,10 @@ There are mainly two options:
 
 ```
 #LOGGING
-LOG_ROUTE=log
+WPD_LOG_ROUTE=log
 ```
 
-- **b)** On Heroku, go to _**Dashboard**_ -> _(Choose your App)_ -> _**Settings**_ -> _**Config Vars**_ and add `LOG_ROUTE` with a value such as `log`.
+- **b)** On Heroku, go to _**Dashboard**_ -> _(Choose your App)_ -> _**Settings**_ -> _**Config Vars**_ and add `WPD_LOG_ROUTE` with a value such as `log`.
 
 In the above examples, `log` is used for the route name. You can set your desired name. 
 

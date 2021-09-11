@@ -17,8 +17,8 @@ module.exports = function( app ) {
   app.use( haltOnTimedout );
   app.use( '/error', require( './error.js' ) );
 
-  if ( process.env.LOG_ROUTE ) {
-    app.use( '/' + process.env.LOG_ROUTE, require( './log.js' ) );
+  if ( process.env.WPD_LOG_ROUTE ) {
+    app.use( '/' + process.env.WPD_LOG_ROUTE, require( './log.js' ) );
   }
 
   // var usersRouter = require('./users'); // @deprecated
