@@ -1,5 +1,9 @@
 # Change Log
 
+#### 1.9.0
+- Changed the default `timeout` parameter value to `29000` from `30000`.
+
+
 #### 1.8.2
 - Updated the `color-string` dependency.
 

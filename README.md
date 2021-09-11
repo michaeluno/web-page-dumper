@@ -129,7 +129,7 @@ Accepts `1` or `0`.
 #### (integer) `timeout`
 The browser connection timeout in milliseconds.
 
-Default: `30000`.
+Default: `29000`.
 
 #### (string) `user_agent`
 Specifies a user agent.
