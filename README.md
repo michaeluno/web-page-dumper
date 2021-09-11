@@ -127,7 +127,9 @@ Decides whether to use browser caches.
 Accepts `1` or `0`.
 
 #### (integer) `timeout`
-The browser connection timeout in milliseconds.
+The browser connection timeout in milliseconds. 
+
+If the `WPD_TIMEOUT` environment variable value is set and shorter than this value, the `WPD_TIMEOUT` value will be used.
 
 Default: `29000`.
 
@@ -388,10 +390,10 @@ Waits for certain milliseconds.
 
 Accepts a value of positive number.
 
-### Overriding Connection Timeout
+### Setting Connection Timeout
 On Heroku, each HTTP request should be responded within 30 seconds to avoid the recurring 503 error.
 
-To override the timeout setting, use the `WPD_TIMEOUT` environment variable. It accepts milliseconds such as `29000`.
+To set the timeout, use the `WPD_TIMEOUT` environment variable. It accepts milliseconds such as `29000`.   
 
 There are mainly two options: 
 
