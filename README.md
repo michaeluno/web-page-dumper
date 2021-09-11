@@ -388,6 +388,20 @@ Waits for certain milliseconds.
 
 Accepts a value of positive number.
 
+### Overriding Connection Timeout
+On Heroku, each HTTP request should be responded within 30 seconds to avoid the recurring 503 error.
+
+To override the timeout setting, use the `WPD_TIMEOUT` environment variable. It accepts milliseconds such as `29000`.
+
+There are mainly two options: 
+
+- **a)** Create a file named `.env` with the following entry in the project root directory (the same location as app.js).
+
+```
+WPD_TIMEOUT=29000
+```
+
+- **b)** On Heroku, go to _**Dashboard**_ -> _(Choose your App)_ -> _**Settings**_ -> _**Config Vars**_ and add `WPD_TIMEOUT` with a value such as `29000`.
 
 ### Logging
 

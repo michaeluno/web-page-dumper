@@ -152,13 +152,19 @@ function _handleRequest( req, res, next ) {
     }
 
     // Capture extra headers
-    // @deprecated 1.8.0
     let cdpRequestDataRaw = await getLoggingOfAllNetworkData( page, urlThis );
+
+    // Get timeout
+    let _timeout = req.app.get( 'connectionTimeout' );
+    _timeout = _timeout && _timeout < req.query.timeout
+      ? parseInt( _timeout )
+      : req.query.timeout;
+    req.logger.debug( 'Request timeout: ' + _timeout );
 
     // Request
     let responseHTTP = await page.goto( urlThis, {
       waitUntil: req.query.reload ? 'load' : req.query.waitUntil,
-      timeout: req.query.timeout,
+      timeout: _timeout,
     });
 
     if ( req.query.reload ) {
@@ -166,21 +172,31 @@ function _handleRequest( req, res, next ) {
       responseHTTP = await page.reload({ waitUntil: req.query.waitUntil } );
     }
 
-    // Extract Network.responseReceivedExtraInfo header. Without this, res.headers() returns incomplete items.
-    let responseHeaders = getHeaders( cdpRequestDataRaw, urlThis );
-
+    /// Close the page and browser later
+    if ( _timeout ) {
+      _closePageLater( page, _timeout, req );
+    }
+    if ( _keyQueryDefault !== _keyQuery ) {
+      _closeBrowserLater( browser, _keyQuery, req, 60000 );
+    }
     req.logger.debug( 'Elapsed: ' + ( Date.now() - startedBrowsers[ _keyQuery ] ).toString() + ' ms' );
 
+    throwErrorOnTimeOut( req );
     await _doActions( page, req, res );
 
+    throwErrorOnTimeOut( req );
+    // Extract Network.responseReceivedExtraInfo header. Without this, res.headers() returns incomplete items.
+    let responseHeaders = getHeaders( cdpRequestDataRaw, urlThis );
     await _processRequest( urlThis, page, req, res, responseHTTP, _typeOutput, responseHeaders );
 
     _closePageLater( page, 100, req );
 
-    if ( _keyQueryDefault !== _keyQuery ) {
-      _closeBrowserLater( browser, _keyQuery, req, 60000 );
-    }
+  }
 
+  function throwErrorOnTimeOut( req ) {
+    if ( req.timedout ) {
+      throw new Error( "Request timed out." );
+    }
   }
 
   /**
@@ -432,13 +448,15 @@ function _handleRequest( req, res, next ) {
         await new Promise(resolve => {
           setTimeout( resolve, timeout );
         })
-        // Clear cookies @see https://github.com/puppeteer/puppeteer/issues/5253#issuecomment-688861236
-        const client = await page.target().createCDPSession();
-        await client.send( 'Network.clearBrowserCookies' );
+        if ( ! await page.isClosed()) {
+          // Clear cookies @see https://github.com/puppeteer/puppeteer/issues/5253#issuecomment-688861236
+          const client = await page.target().createCDPSession();
+          await client.send( 'Network.clearBrowserCookies' );
 
-        // await page.goto( 'about:blank' );
-        req.logger.browser( 'Closing the page: ' + await page.url() );
-        await page.close();
+          // await page.goto( 'about:blank' );
+          req.logger.browser( 'Closing the page: ' + await page.url() );
+          await page.close();
+        }
       })();
     }
 

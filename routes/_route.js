@@ -5,11 +5,16 @@ module.exports = function( app ) {
 
   app.use( '*', require( './any' ) );
   app.use( '/', require( './index' ) );
-  app.use( '/www', require( './www/www.js' ) );
-  app.use( '/nodejsinfo', require( './nodejsinfo' ) );
-  app.use( '/process', require( './process' ) );
-  app.use( '/usage', require( './usage' ) );
   app.use( '/version', require( './version' ) );
+  app.use( haltOnTimedout );
+  app.use( '/www', require( './www/www.js' ) );
+  app.use( haltOnTimedout );
+  app.use( '/nodejsinfo', require( './nodejsinfo' ) );
+  app.use( haltOnTimedout );
+  app.use( '/process', require( './process' ) );
+  app.use( haltOnTimedout );
+  app.use( '/usage', require( './usage' ) );
+  app.use( haltOnTimedout );
   app.use( '/error', require( './error.js' ) );
 
   if ( process.env.LOG_ROUTE ) {
@@ -21,4 +26,18 @@ module.exports = function( app ) {
   // Favicon
   app.use( favicon( path.join( path.dirname( __dirname ), 'public', 'images', 'favicon.svg' ) ) );
 
+}
+
+/**
+ * @since 1.9.0
+ * @see   https://github.com/expressjs/timeout#examples
+ * @param req
+ * @param res
+ * @param next
+ */
+function haltOnTimedout( req, res, next ) {
+  if ( ! req.timedout ) {
+    next();
+  }
+  // next( new Error( "Request timed out." ) );
 }

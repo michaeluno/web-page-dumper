@@ -1,8 +1,8 @@
 # Change Log
 
 #### 1.9.0
+- Added the ability to set request timeout with the environment variable, `WPD_TIMEOUT`.
 - Changed the default `timeout` parameter value to `29000` from `30000`.
-
 
 #### 1.8.2
 - Updated the `color-string` dependency.

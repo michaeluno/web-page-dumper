@@ -13,6 +13,16 @@ var multer = require('multer');
 var upload = multer();
 
 var app = express();
+
+// [1.9.0+] For Heroku instances, they should return a response within 30 seconds to avoid getting stuck with the 503 error.
+if ( process.env.WPD_TIMEOUT ) {
+  var ms = require( 'ms' );
+  _timeout = '' + process.env.WPD_TIMEOUT;
+  app.set( 'connectionTimeout', ms( _timeout ) );
+  var timeout = require( 'connect-timeout' ); // @see https://github.com/expressjs/timeout
+  app.use( timeout( _timeout ) );
+}
+
 var compression = require( 'compression' );
 app.use(compression({}));
 app.enable( 'trust proxy' );  // for Heroku environments to detect whether the scheme is https or not.
