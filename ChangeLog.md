@@ -1,5 +1,8 @@
 # Change Log
 
+#### 1.10.0
+- Fixed a bug that status codes were not transferred properly and always set to `200`.  
+
 #### 1.9.0
 - Added the ability to set request timeout with the environment variable, `WPD_TIMEOUT`.
 - Changed the default `timeout` parameter value to `29000` from `30000`.

@@ -82,6 +82,8 @@ module.exports = class Request_Base {
 
     this.req.logger.debug( 'Set Header', _headerToSend );
 
+    this.res.status( this.responseHTTP.status() );
+
   }
 
   _removeDefaultHeaders() {
