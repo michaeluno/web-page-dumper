@@ -15,8 +15,10 @@ module.exports = function formatQuery( query, req, urlThis ) {
     ? true
     : !! parseInt( query.cache );
 
-  query.timeout             = 'undefined' === typeof query.timeout ? 29000 : parseInt( query.timeout );
-  query.reload              = !! parseInt( query.reload );
+  query.timeout             = 'undefined' === typeof query.timeout ? 29000 : parseInt( query.timeout + '' );
+  query.reload              = query.reload
+    ? parseInt( query.reload + '' )
+    : 0;
 
   // Viewport
   query.viewport            = 'undefined' === typeof query.viewport ? {} : query.viewport;

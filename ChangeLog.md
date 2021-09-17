@@ -1,6 +1,7 @@
 # Change Log
 
 #### 1.10.0
+- Added the reload mode with the `reload` parameter. 
 - Fixed a bug that status codes were not transferred properly and always set to `200`.  
 
 #### 1.9.0

@@ -166,11 +166,7 @@ function _handleRequest( req, res, next ) {
       waitUntil: req.query.reload ? 'load' : req.query.waitUntil,
       timeout: _timeout,
     });
-
-    if ( req.query.reload ) {
-      req.logger.debug( 'Reloading' );
-      responseHTTP = await page.reload({ waitUntil: req.query.waitUntil } );
-    }
+    responseHTTP = await getPageReloaded( responseHTTP, page, req );
 
     /// Close the page and browser later
     if ( _timeout ) {
@@ -197,6 +193,26 @@ function _handleRequest( req, res, next ) {
     if ( req.timedout ) {
       throw new Error( "Request timed out." );
     }
+  }
+
+  /**
+   * @since 1.10.0
+   * @param responseHTTP
+   * @param page
+   * @param req
+   * @returns {Promise<*|*>}
+   */
+  async function getPageReloaded( responseHTTP, page, req ) {
+    if ( ! req.query.reload ) {
+      return responseHTTP;
+    }
+    req.logger.debug( 'Reloading Mode: ' + req.query.reload );
+    if ( 1 === req.query.reload ) {
+      return 400 <= responseHTTP.status()
+        ? await page.reload({ waitUntil: req.query.waitUntil } )
+        : responseHTTP;
+    }
+    return await page.reload( { waitUntil: req.query.waitUntil } );
   }
 
   /**

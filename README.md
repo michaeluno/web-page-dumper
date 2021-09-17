@@ -117,9 +117,15 @@ Does not accept the following arguments.
 - `fullPage` - when the `clip` argument is not set, the full page screenshot will be taken.  
 
 #### (integer) `reload`  
-Specifies whether to reload the internal browser. This is useful for cookie dependant web sites.  
+Specifies whether to reload page in the internal browser. This is useful for cookie-dependant web pages.  
 
-Accepts `1` or `0`.
+Accepts `0`, `1`, or `2`.
+
+ - `0`: does not reload the page.
+ - `1`: reloads only when the HTTP status is larger or equal to `400`, such as `404`, `500`.
+ - `2`: reloads regardless of the HTTP status.
+ 
+If a value that is not listed above is passed and it yields `true`, the value of `2` will be applied. 
 
 #### (integer) `cache`
 Decides whether to use browser caches.
