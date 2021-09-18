@@ -307,7 +307,7 @@ The action parameter must be a numeric linear array holding key-value pairs of a
 
 For example, the following request will perform a search on DuckDuckGo. 
 ```
-http(s)://{app address}/www/?url=https://duckduckgo.com&output=png&action[0][select]=%23search_form_input_homepage&action[1][type]=Web%20Page%20Dumper&action[2][click]=%23search_button_homepage&action[3][waitForNavigation]=&
+http(s)://{app address}/www/?url=https%3A%2F%2Fduckduckgo.com&output=png&&action[0][select]=%23search_form_input_homepage&action[1][type]=Web%20Page%20Dumper&action[2][click]=%23search_button_homepage&action[3][waitForNavigation]=
 ```
 
 Notice that actions are performed sequentially. In the above example, it is interpreted as
